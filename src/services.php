@@ -1,6 +1,6 @@
 <?php
 
-namespace Tee\RptForms;
+namespace Teescripts\RptForms;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -26,7 +26,7 @@ class RptFormServiceProvider extends ServiceProvider
 
 /*
 
-php artisan vendor:publish --provider="Tee\RptForms\RptFormServiceProvider"
+php artisan vendor:publish --provider="Teescripts\RptForms\RptFormServiceProvider"
 php artisan make:provider RptFormServiceProvider
 
 git init

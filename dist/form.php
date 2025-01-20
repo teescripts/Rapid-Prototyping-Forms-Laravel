@@ -1,7 +1,7 @@
 <?php
-namespace Tee\RptForms;
+namespace Teescripts\RptForms;
 
-use Tee\RptForms\main;
+use Teescripts\RptForms\main;
 
 class form extends main
 {

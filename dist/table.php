@@ -1,7 +1,7 @@
 <?php
-namespace Tee\RptForms;
+namespace Teescripts\RptForms;
 
-use Tee\RptForms\render;
+use Teescripts\RptForms\render;
 
 class table extends render
 {

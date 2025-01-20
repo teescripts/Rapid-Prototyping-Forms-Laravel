@@ -1,5 +1,5 @@
 <?php
-namespace Tee\RptForms;
+namespace Teescripts\RptForms;
 
 class template {
 	function template($type="") {

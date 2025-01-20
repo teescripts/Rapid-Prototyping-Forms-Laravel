@@ -1,7 +1,7 @@
 <?php
-namespace Tee\RptForms;
+namespace Teescripts\RptForms;
 
-use Tee\RptForms\table;
+use Teescripts\RptForms\table;
 class layout extends table
 {
 	function __construct() {

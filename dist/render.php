@@ -1,9 +1,9 @@
 <?php
 
-namespace Tee\RptForms;
+namespace Teescripts\RptForms;
 
 use PhpParser\Node\Stmt\TraitUseAdaptation\Alias;
-use Tee\RptForms\main;
+use Teescripts\RptForms\main;
 
 class render extends main
 {

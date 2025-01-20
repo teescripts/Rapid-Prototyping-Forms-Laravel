@@ -1,5 +1,5 @@
 <?php
-namespace Tee\RptForms;
+namespace Teescripts\RptForms;
 
 use Symfony\Component\Process\Process;
 
@@ -63,7 +63,7 @@ class base
 
 		$object	=varKey("ts_{$class}");
 		if (!is_object($object)||!isset($object)||empty($object)) {
-			$class_name	="Tee\RptForms\\{$class}";#"tsp_{$class}"
+			$class_name	="Teescripts\RptForms\\{$class}";#"tsp_{$class}"
 			$object	=new $class_name();
 		}
 		

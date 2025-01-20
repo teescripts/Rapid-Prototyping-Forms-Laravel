@@ -1,10 +1,10 @@
 {
-    "name": "tee/rpt-forms",
+    "name": "teescripts/rpt-forms",
     "description": "The quickest, easiest and most elegant way to create dynamic forms to capture and display data.",
     "type": "library",
     "autoload": {
         "psr-4": {
-            "Tee\\RptForms\\": "dist/"
+            "Teescripts\\RptForms\\": "dist/"
         }
     },
     "authors": [
