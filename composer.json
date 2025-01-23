@@ -4,7 +4,32 @@
     "type": "library",
     "autoload": {
         "psr-4": {
-            "Teescripts\\RptForms\\": "dist/"
+            "Teescripts\\RptForms\\": "src/"
+        },
+
+        "files": [
+            "app/Helpers/autoload.php", 
+
+            "app/Helpers/autoload/database.php", 
+            "app/Helpers/autoload/main.php", 
+            "app/Helpers/autoload/menu.php", 
+            "app/Helpers/autoload/list.php", 
+            "app/Helpers/autoload/lists.php", 
+            "app/Helpers/autoload/form.php", 
+            
+            "app/Helpers/autoload/session.php", 
+            "app/Helpers/autoload/language.php", 
+            "app/Helpers/autoload/page.php", 
+            "app/Helpers/autoload/search.php",  
+            "app/Helpers/autoload/static.php", 
+            "app/Helpers/autoload/upload.php"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Teescripts\\RptForms\\RptFormServiceProvider"
+            ]
         }
     },
     "authors": [
@@ -15,6 +40,7 @@
             "homepage": "https://www.teescripts.com/"
         }
     ],
-    "minimum-stability": "dev",
+    "licence": "MIT", 
+    "minimum-stability": "1.0.0",
     "config": {}
 }
