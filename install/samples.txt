@@ -1,0 +1,49 @@
+TOPICS
+	Field Types
+	Validation rules
+	Form styles/templates
+	Rows and columns
+	Data sources
+	Code samples
+	Form builder
+
+- Contact Form
+	name,subject,email,phone,message,captcha
+- Booking Form
+- Form Validation
+- Car Rental Form
+- Select fields Form
+- Sign Up Form
+- Step Form
+- Switches, Radio, Checkbox Form
+- Customer Feedback Form
+- Customer Satisfaction Step Form
+	Overall, how satisfied or dissatisfied are you with our company ? *
+		Very Satisfied
+		Somewhat satisfied
+		Neither satisfied nor dissatisfied
+		Somewhat dissatisfied
+		Very dissatisfied
+	Which of the following words would you use to describe our products ? *
+	multiple choices - choose at least one
+- Customer Support Form
+- Job application
+- Date, time and range pickers
+- Values from database
+- Dependent fields Form
+- Dependent select dropdown
+- Extendable Forms
+- Employment Application
+- Sectioned Form
+- File Upload + Image editor Form
+- Input with Addons
+- License agreement form
+	Terms & conditions
+	License Agreemento:html::class="ht-200 overflow-scroll"
+	Sign to confirm your agreement
+- Modal forms, popover and  popups
+- Newsletter Suscribe Form
+- Order Form
+- Post with Ajax Form
+- Room Booking Form
+	
