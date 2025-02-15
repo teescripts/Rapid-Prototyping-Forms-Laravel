@@ -2,7 +2,6 @@
 
 namespace Teescripts\RptForms;
 
-use PhpParser\Node\Stmt\TraitUseAdaptation\Alias;
 use Teescripts\RptForms\main;
 
 class render extends main
@@ -16,7 +15,7 @@ class render extends main
 		$keys	=["view", "print", "update", "delete", "btn", "vb"];
 		$fields	=$this->replace($fields);# remove commas in the fields
 		$split	=explode(",", $fields);
-		$comma	=varKey("comma");
+		$comma	=$this->varKey("comma");
 		
 		$count_keys	=0;
 		$count_cols	=count($split);
@@ -42,7 +41,7 @@ class render extends main
 			$block_2	=$this->colonKey(1, $file);
 			
 			if (strstr(".{$block_2}", ".view_")) {
-				$ntype	=varKey($block_2);
+				$ntype	=$this->varKey($block_2);
 				if ($ntype) {
 					if (!$plain) {
 						$nline	=$this->replace($ntype);
@@ -84,7 +83,7 @@ class render extends main
 
 			$align	="left";
 			if ($right) $align="right";
-			$align	=arrayKey("align", $tags, $align);
+			$align	=$this->arrayKey("align", $tags, $align);
 			
 			$class	="cell_th";
 			if ($is_button) $class="cell_empty";
@@ -98,7 +97,7 @@ class render extends main
 			if ($block_3=="hidden") $width=0;
 			if (in_array($block_2, $keys)) $width=$width_key;
 			if (strstr($attrib, 'width=')) {
-				$width	=arrayKey("width", $tags);
+				$width	=$this->arrayKey("width", $tags);
 				$text	='width="'.$width.'"';
 				$block_3	=str_replace($text, "", $block_3);
 				$block_4	=str_replace($text, "", $block_4);
@@ -126,7 +125,7 @@ class render extends main
 		$head	=implode("\r\n\t\t\t", $line["head"]);
 		$json	=implode(", ", $line["json"]);
 		$array	=["fields"=>$line["array"], "head"=>$head, "json"=>$json];
-		$array	=arrayKey($type, $array, $array);
+		$array	=$this->arrayKey($type, $array, $array);
 		return $array;
     }
 	
@@ -138,7 +137,7 @@ class render extends main
 					$array	=explode(",", $colms);
 				}
 				else {
-					$span	=arrayKey(0, $colms, 12);
+					$span	=$this->arrayKey(0, $colms, 12);
 					$block	=0;
 					if (is_array($span)) {
 						if (count($span)==3) $block=1;
@@ -161,9 +160,9 @@ class render extends main
 				if ($count>11) $array=[4, 1, 3];
 				if ($count>15) $array=[3, 1, 4];
 				
-				$span	=arrayKey(0, $array, 12);
-				$cols	=arrayKey(1, $array, 1);
-				$max	=arrayKey(2, $array, $count);
+				$span	=$this->arrayKey(0, $array, 12);
+				$cols	=$this->arrayKey(1, $array, 1);
+				$max	=$this->arrayKey(2, $array, $count);
 				
 				if ($span<2) $span=(12/$span);
 					
@@ -195,9 +194,9 @@ class render extends main
 				$row	=str_replace(" ", "", $row);
 				$row	=explode(",", $row);
 			}
-			$span	=arrayKey(0, $row, 1);
-			$cols	=arrayKey(1, $row, 1);
-			$rows	=arrayKey(2, $row, $numCol);
+			$span	=$this->arrayKey(0, $row, 1);
+			$cols	=$this->arrayKey(1, $row, 1);
+			$rows	=$this->arrayKey(2, $row, $numCol);
 
 			if (!is_array($cols)) {
 				$cols	=str_replace(" ", "", $cols);
@@ -225,8 +224,6 @@ class render extends main
 			if ($remain>0) $array[$key]	=["span"=>$span, "rows"=>$rows, "cols"=>$cols];
 			#$remain	=($remain - $cols);
 		}
-		
-			//echo ":".'<pre>'.print_r($array, 1).'</pre>';
 		return $array;	
 	}
 
@@ -234,12 +231,12 @@ class render extends main
 		$array	=[];
 		$end	=($start + $limit);
 		for ($count=$start; $count<$end;) {
-			$row	=arrayKey($count, $fields);
-			$row	=arrayKey("{$count}", $fields, $row);
+			$row	=$this->arrayKey($count, $fields);
+			$row	=$this->arrayKey("{$count}", $fields, $row);
 			
 			$step	=0;
 			if ($row) {
-				$type	=arrayKey("input", $row);
+				$type	=$this->arrayKey("input", $row);
 				if (in_array($type, ["filex", "textareax"])) {
 					$limit++;
 					$array["t2"][]	=$row;
@@ -260,11 +257,11 @@ class render extends main
 		$global	=$this->globalVars($text_global);
 		extract($global);
 			
-		$row_colms	=varKey("row_cols");
-		$row_blocks	=varKey("row_blocks");
-		$row_class	=varKey("row_class", "row no-gutters");
-		$span_class	=varKey("span_class", "col-md-");
-		$block_class=varKey("block_style");
+		$row_colms	=$this->varKey("row_cols");
+		$row_blocks	=$this->varKey("row_blocks");
+		$row_class	=$this->varKey("row_class", "row no-gutters");
+		$span_class	=$this->varKey("span_class", "col-md-");
+		$block_class=$this->varKey("block_style");
 		# -------------- display and number of columns
 		$array_layout	=["div", "table"];
 		$array_axis		=["vertical", "horizontal"];
@@ -279,21 +276,22 @@ class render extends main
 			if (strstr($form_class, $type)) $temp_form=$type;
 		}
 
-		$temp_alt	=inArray("{$temp_form}-ALT", $array_types, "ALT");
-		$temp_btn	=inArray("{$temp_form}-BTN", $array_types, $temp_alt);
+		$temp_alt	=$this->inArray("{$temp_form}-ALT", $array_types, "ALT");
+		$temp_btn	=$this->inArray("{$temp_form}-BTN", $array_types, $temp_alt);
 		$array_temp	=[
-			arrayKey($temp_form, $templates), 
-			arrayKey($temp_alt, $templates), 
-			arrayKey($temp_btn, $templates)
+			$this->arrayKey($temp_form, $templates), 
+			$this->arrayKey($temp_alt, $templates), 
+			$this->arrayKey($temp_btn, $templates)
 		];
 		
-		$GLOBALS["temp_array"]	=$array_temp;
+		$GLOBALS["temp_array"]=$array_temp;
+
 		$alter_layout	=($axis=="vertical"&&!is_array($row_colms));
 		$material_form	=stristr($temp_form, "M");
-		$material_field	=stristr(varKey("select_class"), "material");
+		$material_field	=stristr($this->varKey("select_class"), "material");
 		if ($alter_layout&&($material_form||$mobile_device||$material_field)) $row_colms=[$row_colms];
 		
-		if (is_array($row_colms)&&$axis=="vertical") {
+		if (is_array($row_colms) && $axis=="vertical") {
 			//$layout	="div";
 		}
 		# ---------- submit button
@@ -304,7 +302,7 @@ class render extends main
 		
 		$load_data	=($btn_value==$this->lang("load_data"));
 		$count_input=(count(explode(":input:", $fields_list))>count(explode("display=", $fields_list)));
-		if ($count_input&&$btn_value!=""&&$axis!="horizontal") {
+		if ($count_input && $btn_value!="" && $axis!="horizontal") {
 			if ($load_data) $load_data=1;
 			$fields_list	.=',send:btn:'.$btn_value.':class="'.$btn_class.'"';
 		}
@@ -319,21 +317,20 @@ class render extends main
 
 		$line_path	="";
 		foreach ($field_array as $array) {
-			$name	=arrayKey("name", $array);
-			$type	=arrayKey("type", $array);
-			$input	=arrayKey("input", $array);
-			$attrib	=arrayKey("attrib", $array);
+			$name	=$this->arrayKey("name", $array);
+			$type	=$this->arrayKey("type", $array);
+			$input	=$this->arrayKey("input", $array);
+			$attrib	=$this->arrayKey("attrib", $array);
 			
-			if ($type=="check"&&$input) $line_path=$input."&column=".$name.$app_extension;
+			if ($type=="check" && $input) $line_path=$input."&column=".$name.$app_extension;
 		}
-		//echo '<pre>'.print_r(($field_array),1).'</pre>';
 
 		$array_global	=["form_method"=>$form_method, "form_path"=>$form_path, "form_class"=>$form_class, "is_form"=>$is_form, "count_input"=>$count_input, "load_data"=>$load_data, "btn_value"=>$btn_value, "btn_class"=>$btn_class, "axis"=>$axis, "line_path"=>$line_path, "tip_class"=>$tip_class, "btn_prefix"=>$btn_prefix, "colors"=>$colors];
 		
 		$array_form	=$this->formTags($array_global);
 
 		$table_array	=["field_list"=>$fields_list, "layout"=>$layout, "axis"=>$axis, "global"=>$text_global];
-
+		
 		if ($axis=="horizontal") {
 			$table_array["row_cols"]	=$row_colms;
 			$table_array["field_array"]	=$field_array;
@@ -360,9 +357,9 @@ class render extends main
 			
 			$row_large	=[];
 			foreach ($array_block as $block=>$row_block) {
-				$row_count	=arrayKey("rows", $row_block);
-				$row_cols	=arrayKey("cols", $row_block);
-				$span_cols	=arrayKey("span", $row_block, 1);
+				$row_count	=$this->arrayKey("rows", $row_block);
+				$row_cols	=$this->arrayKey("cols", $row_block);
+				$span_cols	=$this->arrayKey("span", $row_block, 1);
 				$array_span	=[
 					$span_cols, 
 					$span_cols, 
@@ -379,14 +376,17 @@ class render extends main
 				$row_array	=$array_row["fields"];
 				$row_field	=$row_array["t1"];
 				if ($row_field) {
-					$row_extra	=arrayKey("t2", $row_array, []);
+					$row_extra	=$this->arrayKey("t2", $row_array);
+					if (!is_array($row_extra)) $row_extra=[$row_extra];
 					$row_large	=array_merge($row_large, $row_extra);
 				}
 				else {
 					$row_field	=$row_large;
 				}
 				$alt_class	=$class_alt[($block%2)];
-				$GLOBALS["next_block"]	=$class_alt[(($block + 1) % 2)];
+				$next_block	=$class_alt[(($block + 1) % 2)];
+				$GLOBALS["next_block"]	=$next_block;
+
 				$table_array["row_cols"]	=$row_cols;
 				$table_array["field_array"]	=$row_field;
 
@@ -412,7 +412,7 @@ class render extends main
 		$table_html	.=$text_block;
 		$table_html	.=$array_form["button"];# put a submit all button
 		$table_html	.=$array_form["close"];
-		echo $table_html;
+		return $table_html;
 	}
 
 	function formTags($array_global) {
@@ -432,7 +432,7 @@ class render extends main
 			<button type="submit" formaction="'.$this->link($line_path).'" formmethod="post" class="delete_all '.$tip_class.' '.$btn_prefix.$colors[0].'" title="'.$this->lang("delete_all").'" '.$button_data.'><i class="fas fa-times-circle"></i> '.$this->lang("delete_selected").'</button>';
 			}
 			# table button
-			if ($count_input>0&&!$load_data&&$btn_value) {
+			if ($count_input>0&&!$load_data && $btn_value) {
 				$btn_text	=$this->form("submit", "send", $btn_value, $btn_class, "", "", "", true);
 				$btn_text	.=$this->form_token();
 			}
@@ -461,24 +461,23 @@ class render extends main
 	}
 
 	public function table2($array, $result="", $query="") {	
-
-		$axis	=arrayKey("axis", $array, "vertical");
-		$layout	=arrayKey("layout", $array, "div");
-
-		$row_cols	=arrayKey("row_cols", $array);
 		
-		$text_global	=arrayKey("global", $array);
-		$fields_list	=arrayKey("field_list", $array);
-		$array_field	=arrayKey("field_array", $array);
-		#$	=arrayKey("", $array);
+		$axis	=$this->arrayKey("axis", $array, "vertical");
+		$layout	=$this->arrayKey("layout", $array, "div");
 
+		$row_cols	=$this->arrayKey("row_cols", $array);
+		
+		$text_global	=$this->arrayKey("global", $array);
+		$fields_list	=$this->arrayKey("field_list", $array);
+		$array_field	=$this->arrayKey("field_array", $array);
+		
 		$global	=$this->globalVars($text_global);
 		extract($global);
 		
 		# if not loading results, just fields
 		if (!is_array($result)) $result=[[]];		
 		# -------------- display and number of columns
-		if (is_array($row_cols)&&$axis=="vertical") {
+		if (is_array($row_cols) && $axis=="vertical") {
 			$row_lines	=count($row_cols);
 		}
 		else {
@@ -492,13 +491,13 @@ class render extends main
 		$keys	=["view", "print", "update", "delete", "btn", "vb", "check"];
 		
 		foreach ($array_field as $col_count=>$array) {
-			$line_name	=arrayKey("name", $array);
-			$line_label	=arrayKey("label", $array);
-			$line_type	=arrayKey("type", $array);
-			$line_input	=arrayKey("input", $array);
-			$line_class	=arrayKey("class", $array);
-			$line_width	=arrayKey("width", $array);
-			$line_valid	=arrayKey("validate", $array);
+			$line_name	=$this->arrayKey("name", $array);
+			$line_label	=$this->arrayKey("label", $array);
+			$line_type	=$this->arrayKey("type", $array);
+			$line_input	=$this->arrayKey("input", $array);
+			$line_class	=$this->arrayKey("class", $array);
+			$line_width	=$this->arrayKey("width", $array);
+			$line_valid	=$this->arrayKey("validate", $array);
 			# ---------- to add the order by clause
 			$line_valid	=strtolower($line_valid);
 			$text_label	=str_replace('"', "'", $line_label);
@@ -506,12 +505,12 @@ class render extends main
 			#---------------- required 
 			$sort_link	='[l][r]';
 			$text_req	="";
-			if ($required&&$line_input!="hidden") {
+			if ($required && $line_input!="hidden") {
 				$text_req	=' <span class="require_red" title="'.$text_label.' is required">*</span>';
 			}
 
 			if (is_array($get_sort) && $line_label!="&nbsp;") {
-				$sort_order	=arrayKey(0, $direction);
+				$sort_order	=$this->arrayKey(0, $direction);
 				$sort_class	="order";			
 				$sort_field	='';
 				if (array_key_exists("col", $get_sort)) {
@@ -545,7 +544,7 @@ class render extends main
 			else {
 				$width	=$line_width;
 				if ($th_class) $line_class.=" {$th_class}";
-				$align	=arrayKey("align", $array);
+				$align	=$this->arrayKey("align", $array);
 
 				$attrib	="field:'{$line_field}',width:'{$width}%'";
 				if ($align!="left") $attrib.=",align:'{$align}'";
@@ -559,7 +558,7 @@ class render extends main
 		if (!isset($tr_class)) $tr_class="";
 		if ($axis!="horizontal") $table_id="";
 		if ($table_id) $table_id='id="'.$table_id.'"';
-		$table_class	=varKey("table_class", "table");
+		$table_class	=$this->varKey("table_class", "table");
 		$table_class	.=" axis-{$axis}";
 		if (strstr($table_class, "responsive"))	$table_class.=" axis-responsive";
 		$table_head		="";
@@ -567,7 +566,7 @@ class render extends main
 		
 		# table tags
 		if ($layout=="div") {
-			$table_class	=str_replace(varKey('class_table'), '', $table_class);
+			$table_class	=str_replace($this->varKey('class_table'), '', $table_class);
 			$table_class	="data-view axis-{$axis}";
 
 			if ($axis=="horizontal") {
@@ -635,7 +634,7 @@ class render extends main
 		
 		$html_footer	="";
 		# extra table row
-		$next_row	=($ts_extra_row&&$axis=="horizontal")?$ts_extra_row:$ts_extra_vrow;
+		$next_row	=($ts_extra_row && $axis=="horizontal")?$ts_extra_row:$ts_extra_vrow;
 		if ($layout=="table") {
 			if ($table_foot) $html_footer='<tr class="[row_style]">'.$fields.'</tr>';
 			if ($next_row) $html_footer=$next_row;
@@ -643,7 +642,7 @@ class render extends main
 			if ($table_footer) $html_footer=$table_footer;
 		}
 
-		$trow_class	=arrayKey(0, $style);
+		$trow_class	=$this->arrayKey(0, $style);
 		if ($tr_class) $trow_class.=" {$tr_class}";
 		$table_head	=str_replace('[row_style]', $trow_class, $table_head);
 		$table_foot	=str_replace('[row_style]', $trow_class, $html_footer);
@@ -670,13 +669,13 @@ class render extends main
 	
 	#--------------- start the row function
 	protected function rowFormat($array, $row_data=[], $col_count="", $row_count="", $multi_rows="") {
-		$name		=arrayKey("name", $array);
-		$label		=arrayKey("label", $array);
-		$type		=arrayKey("type", $array);
-		$input		=arrayKey("input", $array);
-		$validate	=arrayKey("validate", $array);
-		$value		=arrayKey("value", $array);
-		$attrib		=arrayKey("attrib", $array);
+		$name		=$this->arrayKey("name", $array);
+		$label		=$this->arrayKey("label", $array);
+		$type		=$this->arrayKey("type", $array);
+		$input		=$this->arrayKey("input", $array);
+		$validate	=$this->arrayKey("validate", $array);
+		$value		=$this->arrayKey("value", $array);
+		$attrib		=$this->arrayKey("attrib", $array);
 		#--------------- count replace
 		$encode	=json_encode($row_data);
 		$encode	=addslashes($encode);
@@ -690,7 +689,7 @@ class render extends main
 		$attrib		=$this->replaceRow($attrib, $array_new);
 		
 		# ---------- format row data
-		$array_row	=["attrib"=>$attrib, "name"=>$name, "label"=>$label, "input"=>$input, "value"=>$value, "validate"=>$validate, "attrib"=>$attrib];
+		$array_row	=["name"=>$name, "label"=>$label, "input"=>$input, "value"=>$value, "validate"=>$validate, "attrib"=>$attrib];
 		
 		$array_form	=["type"=>$type, "data"=>$row_data, "row"=>$row_count, "col"=>$col_count, "multi"=>$multi_rows];
 		$array_form	=array_merge($array, $array_row, $array_form);
@@ -703,13 +702,16 @@ class render extends main
 	
 	#--------------- start the row function
 	private function row($array_field, $axis, $layout, $row_data, $row_count, $row_cols, $total_rows=0) {
-		global $style, $tr_class, $cell_class, $row_class, $temp_array;
+		# globals
+		$text_global	='style,tr_class,cell_class,row_class,temp_array';
+		$global	=$this->globalVars($text_global);
+		extract($global);
 		
 		# ---------- columns per row
 		$full_row	=0;
 		$count_col	=1;
 		$count_row	=0;
-		if (is_array($row_cols)&&$axis=="vertical") {
+		if (is_array($row_cols) && $axis=="vertical") {
 			//$layout	="div";
 			$array_cols	=$row_cols;
 		}
@@ -718,19 +720,23 @@ class render extends main
 			if (!is_array($row_cols)) $array_cols=explode(",", $row_cols);
 		}
 	
-		$array_temp	=arrayKey(0, $temp_array);
-		$form_temp1	=arrayKey("form", $array_temp);
-		$form_label1=arrayKey("label", $array_temp);
+		$array_temp	=$this->arrayKey(0, $temp_array);
+		$form_temp1	=$this->arrayKey("form", $array_temp);
+		$form_label1=$this->arrayKey("label", $array_temp);
 
-		$array_temp	=arrayKey(1, $temp_array);
-		$form_temp2	=arrayKey("form", $array_temp, $form_temp1);
-		$form_label2=arrayKey("label", $array_temp, $form_label1);
+		$array_temp	=$this->arrayKey(1, $temp_array);
+		$form_temp2	=$this->arrayKey("form", $array_temp, $form_temp1);
+		$form_label2=$this->arrayKey("label", $array_temp, $form_label1);
 
-		$array_temp	=arrayKey(2, $temp_array);
-		$form_temp3	=arrayKey("form", $array_temp, $form_temp2);
+		$array_temp	=$this->arrayKey(2, $temp_array);
+		$form_temp3	=$this->arrayKey("form", $array_temp, $form_temp2);
 
 		$trow_class	='[row_style]';
 		if ($tr_class) $trow_class.=" {$tr_class}";
+
+		$legend_start	='{ofset}';
+		$legend_end	='{efset}';
+
 		if ($layout=="div") {
 			$block_class	="data-row {$trow_class}";
 			if ($axis=="vertical") {
@@ -738,8 +744,8 @@ class render extends main
 				if ($row_class) $block_class=$row_class;
 			}
 
-			$row_start	="\n\t\t\t".'<div class="'.$block_class.'">';
-			$row_end	="\n\t\t\t"."</div><!-- end data-row -->\n";
+			$row_start	="\n\t\t\t".$legend_start.'<div class="'.$block_class.'">';
+			$row_end	="\n\t\t\t"."</div><!-- end data-row -->\n".$legend_end;
 		}
 		else {
 			$row_start	='
@@ -750,14 +756,14 @@ class render extends main
 		
 		# ---------- row style
 		$mod_key	=($row_count%2);
-		$trow_class	="row".$row_count." ".arrayKey($mod_key, $style);
+		$trow_class	="row".$row_count." ".$this->arrayKey($mod_key, $style);
 		$row_text	=str_replace('[row_style]', $trow_class, $row_start);
 		# ---------- start row
 		$cell_html	=$row_text;
 		
 		$last_key	=0;
 		$multi_rows	=($axis=="horizontal" || $total_rows>1);
-		if (varKey("btn_value")=="hide" && $total_rows==1) $multi_rows=0;
+		if ($this->varKey("btn_value")=="hide" && $total_rows==1) $multi_rows=0;
 		
 		$count_cols	=count($array_field);
 		# ---------- end ajax stuff
@@ -766,14 +772,14 @@ class render extends main
 			# ---------- format row data
 			$array_keys	=$this->rowFormat($array_colm, $row_data, $col_count, $row_count, $multi_rows);
 			
-			$line_name	=arrayKey("name", $array_keys);
-			$line_label	=arrayKey("label", $array_keys);
-			$line_type	=arrayKey("type", $array_keys);
-			$line_input	=arrayKey("input", $array_keys);
-			$line_valid	=arrayKey("validate", $array_keys);
-			$line_value	=arrayKey("value", $array_keys);
-			$line_class	=arrayKey("class", $array_keys);
-			$line_attrib=arrayKey("attrib", $array_keys);
+			$line_name	=$this->arrayKey("name", $array_keys);
+			$line_label	=$this->arrayKey("label", $array_keys);
+			$line_type	=$this->arrayKey("type", $array_keys);
+			$line_input	=$this->arrayKey("input", $array_keys);
+			$line_valid	=$this->arrayKey("validate", $array_keys);
+			$line_value	=$this->arrayKey("value", $array_keys);
+			$line_class	=$this->arrayKey("class", $array_keys);
+			$line_attrib=$this->arrayKey("attrib", $array_keys);
 			
 			$is_button	=in_array($line_type, $keys);
 			$is_input	=in_array($line_type, ["input", "btn"]);
@@ -782,33 +788,33 @@ class render extends main
 			if ($cell_class) $td_class.=" {$cell_class}";
 			
 			#----------- data value
-			$row_value	=arrayKey($line_name, $row_data);
-			//if (is_array($row_value)) $row_value=implode(", ", $row_value);
+			$row_value	=$this->arrayKey($line_name, $row_data);
 			if (!is_array($row_value)) $row_value=stripslashes($row_value);
 			$row_value	=$this->colons($row_value);
 			# ---------- row style
-			$line_array	=arrayKey(0, $array_cols);
+			$line_array	=$this->arrayKey(0, $array_cols);
 
 			$key_no		=($line_array)?($count_row + 1):$row_count;
 			$row_key	=($key_no%2);
-			$trow_class	="row".$count_row." ".arrayKey($row_key, $style);
+			$trow_class	="row".$count_row." ".$this->arrayKey($row_key, $style);
 			$start_row	=str_replace('[row_style]', $trow_class, $row_start);
 			
 			if (is_array($line_array)) {
 				$row_lines	=count($line_array);
-				$rowspan	=arrayKey($last_key, $line_array);
-				//if (is_array($line_array)) $rowspan=arrayKey(0, $rowspan);
+				$rowspan	=$this->arrayKey($last_key, $line_array);
 				$last_key++;
 			}
 			else {
 				$row_lines	=$line_array;
+				if ($row_lines<1) $row_lines=1;
+
 				$row_size	=12;
-				if ($row_lines>0) $row_size	=(12/ $row_lines);
+				if ($row_lines>0) $row_size=(12/ $row_lines);
 				
 				$col_mod	=($row_size - floor($row_size)) * $row_lines;
 				$rowspan	=floor($row_size);
 				if ($col_count==0) $rowspan=ceil($row_size);
-				if ($col_count==($row_lines - 1)&&$col_mod>1) $rowspan=ceil($row_size);
+				if ($col_count==($row_lines - 1) && $col_mod>1) $rowspan=ceil($row_size);
 			}
 	
 			# ---------- determine cell type
@@ -830,8 +836,6 @@ class render extends main
 				$is_block	=4;
 			}
 			else {
-				#if (stristr($line_value, 'date')) $is_block=4;
-				#if (!stristr($line_value, 'value=""')) $is_block=1;
 				if (in_array($line_input, ["select", "file", "radio", "checkbox", "grid", "tree", "combo", "excel"])) $is_block=4;
 			}
 			
@@ -869,7 +873,9 @@ class render extends main
 			}
 			
 			$form_html	=$form_html.$form_indent."\t\t\t";
-			
+				
+			$field_open	='';
+			$field_close='';
 			if ($line_value=='[head]') {
 				$form_html	="";
 				$html_text	='
@@ -877,17 +883,36 @@ class render extends main
 				<h5 class="card-title mb-0">'.$line_label.'</h5>
 			</div>';
 			}
+			if ($line_value=='[fset]') {
+				$form_html	="";
+
+				$field_open	='
+			<fieldset class="group-fieldset">
+				<legend class="group-legend">'.$line_label.'</legend>';
+				$html_text	='';
+			}
+			if ($line_value=='[/fset]') {
+				$form_html	="";
+
+				$field_close	='
+			</fieldset>';
+				$html_text	='';
+				
+			}
 			
+			$cell_html	=str_replace($legend_start, $field_open, $cell_html);
+			$cell_html	=str_replace($legend_end, $field_close, $cell_html);
+				
 			# ---------- build cell
 			$th_start	="";
 
 			if ($layout=="div") {
 				if ($axis=="vertical") {
-					$xpan_class	=varKey("span_class", "col-sm-");
+					$xpan_class	=$this->varKey("span_class", "col-sm-");
 					$colm_class	=$xpan_class.$rowspan;
 
 					if ($line_value=='[close]') {
-						$next_block	=varKey("next_block");
+						$next_block	=$this->varKey("next_block");
 
 						$pad_class	="{$next_block} mg-t-15 pd-b-20";
 
@@ -964,14 +989,15 @@ class render extends main
 			
 			if (in_array($line_type, ["text", "code", "raw", "pre"])) $row_html=str_replace("\t", "", $row_html);
 			# ---------- display fields
+			
 			$cell_html .=$row_html;
 	
-			if ($count_col==$row_lines&&$axis=="vertical") {
+			if ($count_col==$row_lines && $axis=="vertical") {
 				$full_row	=1;
 				if (count($array_cols)>1) $row_lines=array_shift($array_cols);
 			}
 			# make rows per row
-			if ($full_row&&$count_col<$count_cols) {
+			if ($full_row && $count_col<$count_cols) {
 				$cell_html .=$row_end;
 				$cell_html .=$start_row;
 
@@ -981,7 +1007,7 @@ class render extends main
 				$count_row++;
 			}
 			$count_col++;
-				
+			
 		}# end foreach
 		if (!$full_row && $axis=="vertical" && $count_col>1) {
 			$rem_col	=($row_lines - $count_col);
@@ -997,25 +1023,31 @@ class render extends main
 		}
 		$cell_html .=$row_end;
 
+		$cell_html	=str_replace($legend_start, '', $cell_html);
+		$cell_html	=str_replace($legend_end, '', $cell_html);
+
 		return $cell_html;
 	}# end function 
 		
-	#-------------- format cells function
+	# ------- format cells function
 	function format($array) {
-		global $axis, $table, $app_extension, $tip_class, $icon, $get_id, $btn_class;
+		# globals
+		$text_global	='axis,table,app_extension,tip_class,icon,get_id,btn_class';
+		$global	=$this->globalVars($text_global);
+		extract($global);
 
-		$col_name	=arrayKey("name", $array);
-		$block_1	=arrayKey("label", $array);
-		$block_2	=arrayKey("type", $array);
-		$block_3	=arrayKey("input", $array);
-		$block_4	=arrayKey("validate", $array);
-		$block_5	=arrayKey("value", $array);
-		$block_6	=arrayKey("attrib", $array);
+		$col_name	=$this->arrayKey("name", $array);
+		$block_1	=$this->arrayKey("label", $array);
+		$block_2	=$this->arrayKey("type", $array);
+		$block_3	=$this->arrayKey("input", $array);
+		$block_4	=$this->arrayKey("validate", $array);
+		$block_5	=$this->arrayKey("value", $array);
+		$block_6	=$this->arrayKey("attrib", $array);
 		
-		$row_data	=arrayKey("data", $array);
-		$row_count	=arrayKey("row", $array);
-		$col_count	=arrayKey("col", $array);
-		$multi_rows	=arrayKey("multi", $array);
+		$row_data	=$this->arrayKey("data", $array);
+		$row_count	=$this->arrayKey("row", $array);
+		$col_count	=$this->arrayKey("col", $array);
+		$multi_rows	=$this->arrayKey("multi", $array);
 		
 		$form_label	=$block_1;
 		$cell_type	=$block_2;
@@ -1028,8 +1060,9 @@ class render extends main
 		$form_value	=$block_5;
 		$form_attrib=trim($block_6);
 
+		$row_value	=$this->arrayKey($col_name, $row_data);
 		$text_tags	=$this->rowData($text_tags, $row_data);
-		$row_value	=arrayKey($col_name, $row_data);
+		if ($cell_type=="input") $text_tags=$form_attrib;
 		
 		$raw_value	=$row_value;
 		if (is_array($row_value)) $raw_value=implode(",", $raw_value);
@@ -1042,9 +1075,12 @@ class render extends main
 		$last	="";
 		if ($str_count) $last=$text_link[($str_count-1)];
 		$slash	="";
-		if ($last!="="&&$last!="/") $slash="=";
+		if ($last!="=" && $last!="/") $slash="=";
 		$link_href	=$text_link.$slash.$new_value.$app_extension;
 		$link_tags	=$this->arrayFormat($text_tags);
+		
+		$helper	=$this->arrayKey("help", $link_tags);
+		if ($helper) unset($link_tags["help"]);
 		
 		$text_block	="view,print,update,delete,vb,link,image,download,input,btn,wrap,check";
 		$array_types=explode(",", $text_block);
@@ -1091,6 +1127,18 @@ class render extends main
 			$link_attrs	=["href"=>$this->link($link_href), "class"=>$tip_class." rec_goto", "title"=>$this->lang("goto_record")." ".$strip_value];
 			$link_title	=$link_href;
 		} 
+		elseif (in_array($cell_type, ["legend", "set_open", "set_start"])) {
+			# ---------- html
+			$link_attrs	="";
+			$link_title	="";
+			$view_format='[fset]';
+		}
+		elseif (in_array($cell_type, ["fieldset", "set_close", "set_end"])) {
+			# ---------- html
+			$link_attrs	="";
+			$link_title	="";
+			$view_format='[/fset]';
+		}
 		elseif (in_array($cell_type, ["head", "title", "header", "heading", "h1", "h2", "h3", "h4", "h5"])) {
 			# ---------- html
 			$link_attrs	="";
@@ -1177,12 +1225,12 @@ class render extends main
 		
 			# ---------- path info
 			$file_info	=pathinfo($new_value);
-			$file_title	=arrayKey("filename", $file_info);
-			$file_ext	=arrayKey("extension", $file_info);
+			$file_title	=$this->arrayKey("filename", $file_info);
+			$file_ext	=$this->arrayKey("extension", $file_info);
 			$file_ext	=strtolower($file_ext);
 			
 			if ($file_exists) {
-				$item_class	=arrayKey("class", $link_tags);
+				$item_class	=$this->arrayKey("class", $link_tags);
 				$file_type	=filetype($link_href);
 			
 				$media	=explode(",", "mp3,wma,mp2,wav,mid,ord,webm,ogv,wmv,mp4,mpg,mpeg,avi,dat,vid,vob,swf,flv");	
@@ -1196,7 +1244,7 @@ class render extends main
 					if ($cell_type=="base64") {
 						$link_title	="";
 						$img_text	=file_get_contents($link_href);
-						$view_format	="data:image/{$file_ext};base64,".base64_encode($img_text);
+						$view_format="data:image/{$file_ext};base64,".base64_encode($img_text);
 					}
 					else {
 						$link_cdn	.="?time=".time();
@@ -1210,8 +1258,8 @@ class render extends main
 						}
 						else {
 							# ---------- image file
-							$img_class	=arrayKey("class2", $link_tags, "img-3d");
-							$title	=arrayKey("title", $link_tags, $file_title);
+							$img_class	=$this->arrayKey("class2", $link_tags, "img-3d");
+							$title	=$this->arrayKey("title", $link_tags, $file_title);
 											
 							$link_tags	=["class"=>$tip_class." rec_image", "title"=>$title];
 							$link_attrs	=["href"=>"(h)", "data-featherlight"=>$link_cdn];#"rel"=>"ibox"
@@ -1257,7 +1305,7 @@ class render extends main
 			}
 		}
 		elseif ($view_custom && $cell_type) {
-			if ($view_static) $cell_type=varKey($cell_type, $cell_type);
+			if ($view_static) $cell_type=$this->varKey($cell_type, $cell_type);
 			# --------------- customised
 			if (substr($cell_type, 0, 3)=="[f]") {
 				# ---------- Process the customised function provided
@@ -1268,6 +1316,7 @@ class render extends main
 				$new_text	=str_replace('->', '")->', $new_text);
 				$new_text	=str_replace('::', '")->', $new_text);
 				$new_text	=str_replace('")")->', '")->', $new_text);
+				$new_text	=str_replace('rpt_', '$this->load("', $new_text);
 				$new_text	=str_replace('tsp_', '$this->load("', $new_text);
 				$new_text	=str_replace('$ts_', '$this->load("', $new_text);
 
@@ -1333,9 +1382,10 @@ class render extends main
 			$form_attrib	=$this->rowData($form_attrib, $row_data);
 			
 			if (!strstr($form_attrib, 'id=')) $form_attrib.=' id="'.$input_id.'"';
-			if (!strstr($form_attrib, 'placeholder=')&&$form_label) $form_attrib.=' placeholder="'.$form_label.'"';
+			if (!strstr($form_attrib, 'placeholder=') && $form_label) $form_attrib.=' placeholder="'.$form_label.'"';
 			
 			$view_format	=$this->form($form_type, $form_name, $form_list, $form_def, $form_attrib, $form_valid);
+
 		}
 		else {
 			# ---------- default
@@ -1348,9 +1398,10 @@ class render extends main
 		if ($link_attrs && $link_title) {
 			if (!is_array($link_tags)) $link_tags=[$link_tags];
 			if (is_array($link_attrs)) $link_tags=array_merge($link_attrs, $link_tags);
+
 			$link_attr	=[];
 			foreach ($link_tags as $tag_key=>$tag_value) {
-				$def_tag	=arrayKey($tag_key, $link_attrs);
+				$def_tag	=$this->arrayKey($tag_key, $link_attrs);
 				if ($def_tag && $def_tag!=$tag_value) $tag_value.=' '.$def_tag;
 				if ($tag_value) $tag_value=$this->rowData($tag_value, $row_data);
 				$tag_value	=str_replace('#', $new_value, $tag_value);
@@ -1363,6 +1414,9 @@ class render extends main
 			$link_attr	=implode(' ', $link_attr);
 			$view_format='<a '.$link_attr.'>'.$link_title.'</a>';
 		}
+		
+		if ($helper) $view_format.=' <div class="text-muted xsmall"> '.$helper.'</div>';
+
 		#if ($view_format==="") $view_format="&nbsp;	";	
 		return $view_format;
 	}
@@ -1381,7 +1435,7 @@ class render extends main
 
 		$sizes	=["xxl", "xl", "lg", "md", "sm", "xs"];
 		foreach ($array as $key=>$type) {
-			$size	=arrayKey($key, $sizes);
+			$size	=$this->arrayKey($key, $sizes);
 			$span[]	=str_replace("-md-", "-{$size}-", $class.$type);
 		}
 		$span	=implode(" ", $span);
@@ -1394,7 +1448,7 @@ class render extends main
 			foreach ($array as $name) {
 				$temp	='['.$name.']';
 				if (strstr($input, $temp)) {
-					$value	=arrayKey($name, $row_data);
+					$value	=$this->arrayKey($name, $row_data);
 					$input	=str_replace($temp, $value, $input);
 				}
 			}
@@ -1412,7 +1466,7 @@ class render extends main
 	
 	#-------------- colons function
 	private function colons($values, $type=1) {
-		$text1	=[varKey("comma"), varKey("colon")];
+		$text1	=[$this->varKey("comma"), $this->varKey("colon")];
 		$text2	=[',', ':'];
 		$values	=str_replace($text2, $text1, $values);
 		if ($type==1) $values=str_replace($text1, $text2, $values);
@@ -1420,7 +1474,7 @@ class render extends main
 	}
 		
 	private function colonKey($key, $array, $type=1) {
-		$value	=arrayKey($key, $array);
+		$value	=$this->arrayKey($key, $array);
 		$text	=$this->colons($value, $type);
 		return $text;
 	}
@@ -1433,12 +1487,12 @@ class render extends main
 			$nchar	=$this->colons($char, 2);
 			$list	=str_replace($char, $nchar, $list);
 		}
-		$list	=str_replace(varKey("colon")."'.", ":'.", $list);
+		$list	=str_replace($this->varKey("colon")."'.", ":'.", $list);
 		# ------ functions
 		$array	=explode('[/f]', $list);
 		foreach ($array as $key=>$values) {
 			$chip	=explode('[f]', $values);
-			$value	=arrayKey(1, $chip);
+			$value	=$this->arrayKey(1, $chip);
 			$new_val=$this->colons($value, 2);
 			$list	=str_replace($value, $new_val, $list);
 		}
@@ -1487,21 +1541,6 @@ class render extends main
 		}
 		
 		return $player_script;			  
-	}
-	
-	public function globalVars($list="") {
-		if (!$list) $list='cms_connect,exclude,c,control,root,site_base,base_path,cms_path,library,includes,sitename,session_code,session_data,siteid,site_name,site_root,db_sites,array_sites,this_role,this_auth,this_user,current_role,current_user,current_id,current_names,int_action,action,action_name,icon,get_id,icon_name,get_mod,module_name,get_title,mod_array,this_url,tip_class,path_icons,tables,module_sql,lang_array,session_language,is_lang,language,tab_permission,tab_names,tab_array,icon_list,btn_active,btn_other,tab_inner1,tab_inner2,tab_start,tab_end,tab_active,tab_other,print_pages,print_path,date';
-		$array	=explode(",", $list);
-		$vars	=[];
-		foreach ($array as $var) {
-			$var	=trim($var);
-			#$value	=arrayKey($var, $GLOBALS);
-			$nkey	=str_replace("_", ".", $var);
-			$value	=config("forms.{$nkey}");
-			${$var}	=$value;
-			$vars[$var]	=$value;
-		}
-		return $vars;
 	}
 
 	public function form_token($return="") {

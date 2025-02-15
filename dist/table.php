@@ -13,11 +13,11 @@ class table extends render
 		$default=array("pagination"=>"true", "pageSize"=>20, "multiSort"=>"true", "fitColumns"=>"false");
 		
 		if (!is_array($attribute)) {
-			$attrib	=varKey("table_attrib");
+			$attrib	=$this->varKey("table_attrib");
 			if ($attrib) $attribute=$this->arrayTags($attrib);
 		}
-		$class	=varKey("table_class1");
-		$options=arrayKey("data-options", $attribute, []);
+		$class	=$this->varKey("table_class1");
+		$options=$this->arrayKey("data-options", $attribute, []);
 		$config	=array_merge($default, $options);
 		array_unique($config);
 		ksort($config);
@@ -30,7 +30,7 @@ class table extends render
 		$settings	=implode(",", $settings);
 		$settings	='data-options="'.$settings.'" class="easyui-datagrid '.$class.'" style="width:98%; height: 350px;"';
 
-		$array	=arrayKey("fields", $fields);
+		$array	=$this->arrayKey("fields", $fields);
 		if (!is_array($array)) {
 			$fields	=$this->columns($fields);
 			$array	=$fields["fields"];
@@ -41,8 +41,8 @@ class table extends render
 			$mcount	=0;
 			$init	=[];
 			foreach ($array as $col_count=>$keys) {
-				$name	=arrayKey("name", $keys);
-				$label	=arrayKey("label", $keys);
+				$name	=$this->arrayKey("name", $keys);
+				$label	=$this->arrayKey("label", $keys);
 				$field	=in_array($name, $init)?$name.$col_count:$name;
 				$options="field:'{$field}'";
 				if ($field==$name) $options.=",resizable:true,sortable:true";
@@ -65,7 +65,7 @@ class table extends render
 		}# end if result
 		
 		$thead	="";
-		$frozen	=arrayKey("freeze", $row);
+		$frozen	=$this->arrayKey("freeze", $row);
 		
 		if ($frozen) $thead='
 			<thead data-options="frozen:true">
@@ -115,12 +115,12 @@ class table extends render
 		$array_keys	=array_flip($array_keys);
 		$count	=0;
 		foreach ($row as $name=>$value) {
-			$array_key	=arrayKey($name, $array_keys);
-			$array_colm	=arrayKey($array_key, $fields);
+			$array_key	=$this->arrayKey($name, $array_keys);
+			$array_colm	=$this->arrayKey($array_key, $fields);
 			if ($array_colm) {
 				# ---------- format row data
 				$array_colm	=$this->rowFormat($array_colm, $row, $count, $row_count, $multi);
-				$value	=arrayKey("value", $array_colm);
+				$value	=$this->arrayKey("value", $array_colm);
 			}
 			# ------ close the container field
 			$field	=$name;
@@ -152,8 +152,8 @@ class table extends render
 			# ---------- format row data
 			$array_colm	=$this->rowFormat($array_colm, $row, $count, $row_count, $multi);
 
-			$name	=arrayKey("name", $array_colm);
-			$value	=arrayKey("value", $array_colm);
+			$name	=$this->arrayKey("name", $array_colm);
+			$value	=$this->arrayKey("value", $array_colm);
 			# ------ close the container field
 			$field	=$name;
 			if (in_array($name, $init)) $field=$name.$count;
@@ -185,7 +185,7 @@ class table extends render
 		
 		# pagination
 		$sLimit = "";
-		if (isset($get_start)&&$get_max!='-1')	{
+		if (isset($get_start) && $get_max!='-1')	{
 			$sLimit = "LIMIT ".$get_start.", ".$get_max;
 		}
 		
@@ -197,7 +197,7 @@ class table extends render
 				$get_sortCol	=$data["iSortCol_".$i];
 				$get_sortDir	=$data["sSortDir_".$i];
 				$get_sortable	=$data["bSortable_".$i];
-				if ($get_sortable=="true"&&$get_sortDir) {
+				if ($get_sortable=="true" && $get_sortDir) {
 					$colField	=$col_array[$get_sortCol]["name"];
 					$order[]	="`$colField` ".strtoupper($get_sortDir);
 				}
@@ -214,7 +214,7 @@ class table extends render
 			$get_phrase		=$data["sSearch_".$i];
 			$get_searchable	=$data["bSearchable_".$i];
 			$get_dataProp	=$data["mDataProp_".$i];
-			if ($get_searchable=="true"&&$get_phrase) {
+			if ($get_searchable=="true" && $get_phrase) {
 				$where[]=$this->sqlMany($colField, $search_phrase);
 			}
 		}
@@ -236,7 +236,7 @@ class table extends render
 		$get_page	=$data["page"];
 		$get_rows	=$data["rows"];
 		$sLimit = "";
-		if ($get_page&&$get_rows)	{
+		if ($get_page && $get_rows)	{
 			$query_start	=($get_page*$get_rows)-$get_rows;//(($get_page-1)*$get_rows);
 			$sLimit = "LIMIT {$query_start}, ".$get_rows;
 		}
@@ -245,7 +245,7 @@ class table extends render
 		$get_sort	=$data['sort'];
 		$get_order	=$data['order'];
 		$sOrder	=$sql_order;
-		if ($get_sort&&$get_order) {
+		if ($get_sort && $get_order) {
 			$exp_sort	=explode(",", $get_sort);
 			$exp_order	=explode(",", $get_order);
 			$order	=array();
@@ -260,7 +260,7 @@ class table extends render
 		$get_search	=$data['query'];
 		$get_field	=$data['qtype'];
 		$sWhere =$sql_where;
-		if ($get_field&&$get_search) {
+		if ($get_field && $get_search) {
 			$sWhere .=$this->sqlBool()." `{$get_field}` LIKE '%{$get_search}%'";
 		}
 		$array	=array("where"=>$sWhere, "order"=>$sOrder, "limit"=>$sLimit);
@@ -275,7 +275,7 @@ class table extends render
 		$get_page	=$data["page"];
 		$get_rows	=$data["rp"];
 		$sLimit = "";
-		if ($get_page&&$get_rows)	{
+		if ($get_page && $get_rows)	{
 			$query_start	=($get_page*$get_rows)-$get_rows;//(($get_page-1)*$get_rows);
 			$sLimit = "LIMIT {$query_start}, ".$get_rows;
 		}
@@ -284,7 +284,7 @@ class table extends render
 		$get_sort	=$data['sortname'];
 		$get_order	=$data['sortorder'];
 		$sOrder	=$sql_order;
-		if ($get_sort&&$get_order) {
+		if ($get_sort && $get_order) {
 			$sOrder	="ORDER BY `{$get_sort}` ".strtoupper($get_order);
 		}
 		
@@ -292,7 +292,7 @@ class table extends render
 		$get_search	=$data['query'];
 		$get_field	=$data['qtype'];
 		$sWhere =$sql_where;
-		if ($get_field&&$get_search) {
+		if ($get_field && $get_search) {
 			$sWhere.=$this->sqlBool()." `{$get_field}` LIKE '%{$get_search}%'";
 		}
 		$array	=["where"=>$sWhere, "order"=>$sOrder, "limit"=>$sLimit, "page"=>$get_page];
@@ -370,7 +370,7 @@ class table extends render
 	}
 
 	function jExcelColms($columns) {
-		$base_ajax	=varKey("base_ajax");
+		$base_ajax	=$this->varKey("base_ajax");
 		$selects	=["select", "radio", "checkbox", "grid", "tree", "combo", "excel"];
 		$array_text	=["hidden"=>"hidden", "number"=>"numeric", "select"=>"dropdown", "grid"=>"dropdown", "tree"=>"dropdown", "combo"=>"dropdown", "excel"=>"dropdown", "password"=>"password"];
 		$array_fields	=$this->columns($columns, "fields");
@@ -379,15 +379,15 @@ class table extends render
 		$count	=count($array_fields);
 		$size_w	=floor(1000/$count);
 		foreach ($array_fields as $key=>$array) {
-			$name	=arrayKey("name", $array);
-			$label	=arrayKey("label", $array);
-			$itype	=arrayKey("type", $array);
-			$input	=arrayKey("input", $array, "text");
-			$valid	=arrayKey("validate", $array);
-			$extra	=arrayKey("attrib", $array);
-			$value	=arrayKey("value", $array);
-			$width	=arrayKey("width", $array);
-			$align	=arrayKey("align", $array, "left");
+			$name	=$this->arrayKey("name", $array);
+			$label	=$this->arrayKey("label", $array);
+			$itype	=$this->arrayKey("type", $array);
+			$input	=$this->arrayKey("input", $array, "text");
+			$valid	=$this->arrayKey("validate", $array);
+			$extra	=$this->arrayKey("attrib", $array);
+			$value	=$this->arrayKey("value", $array);
+			$width	=$this->arrayKey("width", $array);
+			$align	=$this->arrayKey("align", $array, "left");
 
 			$required	=false;
 			if ($valid) {
@@ -402,34 +402,34 @@ class table extends render
 			}
 
 			$is_select	=in_array($input, $selects);
-			$type	=arrayKey($input, $array_text, $input);
+			$type	=$this->arrayKey($input, $array_text, $input);
 			if ($itype!="input") $type="";
 			#type: 'autonumber', primaryKey: true
 			
 			$tags	=[];
 			if ($itype!="input") $extra=$input;
 			if ($extra) $tags=$this->arrayFormat($extra);
-			$token	=arrayKey("tags", $tags);
-			$path	=arrayKey("path", $tags);
-			$prefix	=arrayKey("prefix", $tags);
-			$suffix	=arrayKey("suffix", $tags);
-			$mask	=arrayKey("mask", $tags);
-			$class	=arrayKey("class", $tags);
-			$sort	=arrayKey("sort", $tags, false);
-			$render	=arrayKey("render", $tags);
-			$format	=arrayKey("decimal", $tags);
+			$token	=$this->arrayKey("tags", $tags);
+			$path	=$this->arrayKey("path", $tags);
+			$prefix	=$this->arrayKey("prefix", $tags);
+			$suffix	=$this->arrayKey("suffix", $tags);
+			$mask	=$this->arrayKey("mask", $tags);
+			$class	=$this->arrayKey("class", $tags);
+			$sort	=$this->arrayKey("sort", $tags, false);
+			$render	=$this->arrayKey("render", $tags);
+			$format	=$this->arrayKey("decimal", $tags);
 
 			$dwidth	=floor($size_w);
 			if ($key==0) $dwidth=ceil($size_w);
 
-			if (!$width&&$dwidth>30) $width=$dwidth;
+			if (!$width && $dwidth>30) $width=$dwidth;
 			if (!$width) $width=100;
 			if ($width<30) $width=($width*10);
 
 			$path1	=$this->listName($path);
 			$path2	=$this->listName($value);
 			$npath	=$path1;
-			if ($path2&&$path2!=$value) {
+			if ($path2 && $path2!=$value) {
 				$value	="";
 				$npath	=$path2;
 			}
@@ -444,7 +444,7 @@ class table extends render
 
 			$title	=$label;
 			if ($class) $title='<span class="'.$class.'">'.$label.'</span>';
-			if ($required&&$input!="hidden") $title.=' <span class="require_red" title="'.strip_tags($label).' is required">*</span>';
+			if ($required && $input!="hidden") $title.=' <span class="require_red" title="'.strip_tags($label).' is required">*</span>';
 
 			$option	=[];
 			$attrib	=["name"=>$name, "title"=>$title];
@@ -535,7 +535,7 @@ class table extends render
 	}
 
 	function hsonColms($columns) {
-		$base_ajax	=varKey("base_ajax");
+		$base_ajax	=$this->varKey("base_ajax");
 		$selects	=array("select", "radio");#, "checkbox"
 		$array_text	=array("hidden"=>"text", "number"=>"numeric", "select"=>"dropdown");
 		$array_fields	=$this->columns($columns, "fields");
@@ -544,15 +544,15 @@ class table extends render
 		$count	=count($array_fields);
 		$size_w	=floor(100/$count);
 		foreach ($array_fields as $key=>$array) {
-			$name	=arrayKey("name", $array);
-			$label	=arrayKey("label", $array);
-			$itype	=arrayKey("type", $array);
-			$input	=arrayKey("input", $array);
-			$valid	=arrayKey("validate", $array);
-			$extra	=arrayKey("attrib", $array);
-			$value	=arrayKey("value", $array);
-			$width	=arrayKey("width", $array);
-			$align	=arrayKey("align", $array, "left");
+			$name	=$this->arrayKey("name", $array);
+			$label	=$this->arrayKey("label", $array);
+			$itype	=$this->arrayKey("type", $array);
+			$input	=$this->arrayKey("input", $array);
+			$valid	=$this->arrayKey("validate", $array);
+			$extra	=$this->arrayKey("attrib", $array);
+			$value	=$this->arrayKey("value", $array);
+			$width	=$this->arrayKey("width", $array);
+			$align	=$this->arrayKey("align", $array, "left");
 
 			$required	=false;
 			if ($valid) {
@@ -567,7 +567,7 @@ class table extends render
 			}
 
 			$is_select	=in_array($input, $selects);
-			$type	=arrayKey($input, $array_text, $input);
+			$type	=$this->arrayKey($input, $array_text, $input);
 
 			$render		="html";
 			$readonly	=false;
@@ -580,18 +580,18 @@ class table extends render
 			
 			$tags	=[];
 			if ($extra) $tags=$this->arrayFormat($extra);
-			$token	=arrayKey("tags", $tags);
-			$path	=arrayKey("path", $tags);
-			$prefix	=arrayKey("prefix", $tags);
-			$suffix	=arrayKey("suffix", $tags);
-			$mask	=arrayKey("mask", $tags);
-			$class	=arrayKey("class", $tags);
-			$filter	=arrayKey("filter", $tags, false);
-			$sort	=arrayKey("sort", $tags, false);
+			$token	=$this->arrayKey("tags", $tags);
+			$path	=$this->arrayKey("path", $tags);
+			$prefix	=$this->arrayKey("prefix", $tags);
+			$suffix	=$this->arrayKey("suffix", $tags);
+			$mask	=$this->arrayKey("mask", $tags);
+			$class	=$this->arrayKey("class", $tags);
+			$filter	=$this->arrayKey("filter", $tags, false);
+			$sort	=$this->arrayKey("sort", $tags, false);
 
 			$dwidth	=floor($size_w);
 			if ($key==0) $dwidth=ceil($size_w);
-			if (!$width&&$dwidth) $width=$dwidth;
+			if (!$width && $dwidth) $width=$dwidth;
 			$width	=($width * 10);
 			
 			if ($value&&!$path) {
@@ -606,7 +606,7 @@ class table extends render
 
 			$title	=$label;
 			if ($class) $title='<span class="'.$class.'">'.$label.'</span>';
-			if ($required&&$input!="hidden") $title.=' <span class="require_red" title="'.strip_tags($label).' is required">*</span>';
+			if ($required && $input!="hidden") $title.=' <span class="require_red" title="'.strip_tags($label).' is required">*</span>';
 
 			$option	=[];
 			$attrib	=array("data"=>$name, "label"=>$title);
@@ -711,7 +711,7 @@ class table extends render
 	}
 
 	function easyuiColms($columns) {
-		$base_ajax	=varKey("base_ajax");
+		$base_ajax	=$this->varKey("base_ajax");
 		$selects	=array("select", "radio", "checkbox");
 		$array_text	=array("text"=>"textbox", "select"=>"combogrid", "number"=>"numberbox", "file"=>"filebox", "textarea"=>"textbox", "datetime"=>"datetimespinner", "date"=>"datebox", "time"=>"timespinner", "color"=>"colorbox", "mask"=>"maskedbox", "password"=>"passwordbox", "radio"=>"combo", "search"=>"searchbox", "slider"=>"slider", "switch"=>"checkbox", "tag"=>"tagbox");#numberbox, 
 
@@ -721,13 +721,13 @@ class table extends render
 		$count	=count($array_fields);
 		$size_w	=floor(100/$count);
 		foreach ($array_fields as $key=>$array) {
-			$name	=arrayKey("name", $array);
-			$label	=arrayKey("label", $array);
-			$itype	=arrayKey("type", $array);
-			$input	=arrayKey("input", $array, "text");
-			$valid	=arrayKey("validate", $array);
-			$extra	=arrayKey("attrib", $array);
-			$value	=arrayKey("value", $array);
+			$name	=$this->arrayKey("name", $array);
+			$label	=$this->arrayKey("label", $array);
+			$itype	=$this->arrayKey("type", $array);
+			$input	=$this->arrayKey("input", $array, "text");
+			$valid	=$this->arrayKey("validate", $array);
+			$extra	=$this->arrayKey("attrib", $array);
+			$value	=$this->arrayKey("value", $array);
 
 			if (!$label) $label="&nbsp;";
 			if ($itype!="input") $extra=$input;
@@ -736,24 +736,24 @@ class table extends render
 			if ($key==0) $width=ceil($size_w);
 
 			$tags	=$this->arrayFormat($extra);
-			$opt_min=arrayKey("min", $tags);
-			$opt_max=arrayKey("max", $tags);
-			$steps	=arrayKey("step", $tags, 1);
-			$token	=arrayKey("tags", $tags);
-			$mask	=arrayKey("mask", $tags);
-			$prefix	=arrayKey("prefix", $tags);
-			$suffix	=arrayKey("suffix", $tags);
-			$align	=arrayKey("align", $tags, "left");
-			$width	=arrayKey("width", $tags, $width);
-			$path	=arrayKey("path", $tags);
-			$is_select	=arrayKey($input, $selects);
+			$opt_min=$this->arrayKey("min", $tags);
+			$opt_max=$this->arrayKey("max", $tags);
+			$steps	=$this->arrayKey("step", $tags, 1);
+			$token	=$this->arrayKey("tags", $tags);
+			$mask	=$this->arrayKey("mask", $tags);
+			$prefix	=$this->arrayKey("prefix", $tags);
+			$suffix	=$this->arrayKey("suffix", $tags);
+			$align	=$this->arrayKey("align", $tags, "left");
+			$width	=$this->arrayKey("width", $tags, $width);
+			$path	=$this->arrayKey("path", $tags);
+			$is_select	=$this->arrayKey($input, $selects);
 			
 			$init	="";
 			$class	="";
 			if ($value) {
 				$values	=$this->txt("*", $value, "array");
-				$init	=arrayKey(0, $values);
-				$value	=arrayKey("last", $value);
+				$init	=$this->arrayKey(0, $values);
+				$value	=$this->arrayKey("last", $value);
 				if (!$init) $value=$init;
 				$value	=$this->arrayConvert($value, "tree");
 			}
@@ -792,13 +792,13 @@ class table extends render
 			if ($valid=="inrange") {
 				$input	="slider";
 				$range	=explode("-", $valid);
-				$opt_min	=arrayKey(0, $range, $opt_min);
-				$opt_max	=arrayKey(1, $range, $opt_max);
+				$opt_min	=$this->arrayKey(0, $range, $opt_min);
+				$opt_max	=$this->arrayKey(1, $range, $opt_max);
 			}
 			if ($input=="slider") {
-				$opt_rule	=arrayKey("rule", $tags);
-				$vertical	=arrayKey("vertical", $tags);
-				$reverse	=arrayKey("reversed", $tags);
+				$opt_rule	=$this->arrayKey("rule", $tags);
+				$vertical	=$this->arrayKey("vertical", $tags);
+				$reverse	=$this->arrayKey("reversed", $tags);
 				$attrib["showTip"]	=true;
 				if ($opt_rule) $attrib["rule"]=$opt_rule;
 				if ($vertical) $attrib["mode"]="v";
@@ -882,7 +882,7 @@ class table extends render
 			
 			
 			if ($mask) $input="mask";
-			$type	=arrayKey($input, $array_text, $input);
+			$type	=$this->arrayKey($input, $array_text, $input);
 			if (!$class) $class=$type;
 			
 			$option["prompt"]	="{$label} ...";
@@ -892,7 +892,7 @@ class table extends render
 			if ($opt_max!="") $option["max"]=$opt_max;
 			if ($steps) $option["increment"]=$steps;
 			if ($required) $option["required"]=true;
-			if ($opt_min&&$opt_max) $validate[]="length[{$opt_min},{$opt_max}]";
+			if ($opt_min && $opt_max) $validate[]="length[{$opt_min},{$opt_max}]";
 
 			$attrib["align"]	=$align;
 			//$attrib["class"]	="easyui-{$class}";

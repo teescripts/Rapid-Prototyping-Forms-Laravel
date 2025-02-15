@@ -1,27 +1,28 @@
 <?php
 namespace Teescripts\RptForms;
 
-use Symfony\Component\Process\Process;
+use Illuminate\Support\Facades\DB;
+use Teescripts\RptForms\init;
 
-class base
-{
-	//public $load;
+class base extends init {
 	function __construct() {
+		parent::__construct();
 	}
+	
 
 	public function pluginConnect() {
 		$array_users=[[
-			isConst("DB_USER", "root"), 
-			isConst("DB_PASS", "root")
+			$this->isConst("DB_USER", "root"), 
+			$this->isConst("DB_PASS", "root")
 		]];
 		
 		$array_db	=[
-			"type"=>isConst("DB_TYPE", "mysql"), 
-			"host"=>isConst("DB_HOST", "localhost"), 
-			"name"=>isConst("DB_NAME"), 
+			"type"=>$this->isConst("DB_TYPE", "mysql"), 
+			"host"=>$this->isConst("DB_HOST", "localhost"), 
+			"name"=>$this->isConst("DB_NAME"), 
 			"persist"=>true
 		];
-		$connect	=doConnect($array_db, $array_users);
+		$connect	=$this->connecter($array_db, $array_users);#
 		return $connect;
 	}
 
@@ -61,9 +62,9 @@ class base
 			}
 		}
 
-		$object	=varKey("ts_{$class}");
+		$object	="";//$this->varKey("ts_{$class}");
 		if (!is_object($object)||!isset($object)||empty($object)) {
-			$class_name	="Teescripts\RptForms\\{$class}";#"tsp_{$class}"
+			$class_name	="Teescripts\RptForms\\".$class;
 			$object	=new $class_name();
 		}
 		
@@ -83,9 +84,9 @@ class base
 	}
 	
 	public function prefix($text) {
-		$prefix1	=isConst("TEE", "tee_");
-		$prefix2	=isConst("PREFIX");
-		$prefix3	=isConst("PREFIX2", $prefix2);
+		$prefix1	=$this->constKey("app.ext.prefix1", "tee_");
+		$prefix2	=$this->constKey("app.ext.prefix2");
+		$prefix3	=$this->constKey("app.ext.prefix3", $prefix2);
 		
 		$text	=str_replace("#_", $prefix2, $text);
 		$text	=str_replace("#t_", $prefix1, $text);
@@ -100,9 +101,9 @@ class base
 		$query_text	=$query_var;
 		if (is_array($query_var)) {
 			# if query includes bound values
-			$array_key1	=arrayKey(0, $query_var);
-			$array_key2	=arrayKey(1, $query_var, $array_bind);
-			if (!is_array($array_key1)&&is_array($array_key2)) {
+			$array_key1	=$this->arrayKey(0, $query_var);
+			$array_key2	=$this->arrayKey(1, $query_var, $array_bind);
+			if (!is_array($array_key1) && is_array($array_key2)) {
 				$query_text	=$array_key1;
 				$array_bind	=$array_key2;
 			}
@@ -110,79 +111,45 @@ class base
 
 		if ($query_text && !is_array($query_text)) {
 
-			$cms_connect	=$reconnect;
-			if (!$reconnect) $cms_connect=$this->pluginConnect();
-			
-			$query_text	=$this->prefix($query_text);
-			#$query_text	=str_replace("\n", " ", $query_text);
-
-			$nquery	=$query_text;	
-			$result	=$cms_connect->prepare($query_text);
-
+			$bound	=[];
 			if (is_array($array_bind) && $array_bind) {
 				foreach ($array_bind as $field=>$value) {
 					$nvalue	=$value;
-					if (is_array($value)) {
-						$nvalue	=implode(",", $value);
-					}
-					$result->bindValue(":{$field}", $nvalue);
-					$nquery	=str_replace(":{$field}", $value, $nquery);
+					if (is_array($value)) $nvalue=implode(",", $value);
+
+					$bound[$field]	=$nvalue;
 				}
 			}
 		
-			$error	="";
-			try {
-				$result->execute();
-				throw new PDOException();
-			}
-			catch (PDOException $handle) {
-				$error	=$this->errorMsg($result, $format, $nquery, $handle);
-			}
+			$query_text	=$this->prefix($query_text);
 			
-			$results	=[];
-			# if there is an error
-			if ($error) {
-				$results	=$error;
-			}
-			else {
-				$lower	=trim($query_text);
-				$lower	=strtolower($lower);
-				$lower	=preg_replace("/\s\s+/i", " ", $lower);
-				$array	=["insert into", "update", "delete", "replace into"];
-				$select	=0;
-				foreach ($array as $query) {
-					$match	=stristr(".{$lower}", ".{$query} ");
-					if ($match) $select++;
-				}
+			$lower	=trim($query_text);
+			$lower	=strtolower($lower);
+			$lower	=preg_replace("/\s\s+/i", " ", $lower);
+			$array	=["insert into", "update", "delete", "replace into"];
 
-				#$this->logArray($nquery, 4);
-			
-				
-				if ($select==0) {
-					if (!$type) $type=PDO::FETCH_ASSOC;
-					$results	=$result->fetchAll($type);
-				}
-				elseif (stristr(".{$lower}", ".update ")) {
-					$results	=true;
-				}
-				elseif (stristr(".{$lower}", ".insert into ")) {
-					$lastid	=$cms_connect->lastInsertId();
-					$results	=$lastid;
-				}
+			$select	=0;
+			foreach ($array as $query) {
+				$match	=stristr(".{$lower}", ".{$query} ");
+				if ($match) $select++;
 			}
-			
-			/*
-			$file	=varKey("base_root")."a_base-".$this->abbr(implode(",", $array_bind)).".txt";
-			
-			#if (strstr($query_text, "api_"))
-			#if (strstr($query_text, "product_items")) file_put_contents($file, json_encode($results)." ".print_r([$nquery, $array_bind], 1));
-			*/
 
-			$result		=NULL;
-			if (!$reconnect) {
-				//$cms_connect->exec('KILL CONNECTION CONNECTION_ID();');
-				$cms_connect=NULL;
+			if ($select==0) {
+				if (!$type) $type=3;
+				$result	=DB::select($query_text, $bound);#statement, select, unprepared
+					
+				$results	=array_map(function($item){
+					return (array) $item;
+				}, $result);
 			}
+			elseif (stristr(".{$lower}", ".update ")) {
+				$results	=true;
+			}
+			elseif (stristr(".{$lower}", ".insert into ")) {
+				$lastid	=DB::insert($query_text)->insertGetId($bound);
+				$results	=$lastid;
+			}
+			
 			return $results;
 		}
 		else {
@@ -193,8 +160,8 @@ class base
 	
 	public function exec($query) {
 		if (is_array($query)) {
-			$nquery	=arrayKey(0, $query);
-			$bind	=arrayKey(1, $query, []);
+			$nquery	=$this->arrayKey(0, $query);
+			$bind	=$this->arrayKey(1, $query, []);
 		}
 		else {
 			$nquery	=$query;
@@ -221,7 +188,7 @@ class base
 		}
 		catch (PDOException $handle) {
 			$error	=$this->errorMsg($result, "html", $nquery, $handle);
-			echo arrayKey("error", $result);
+			echo $this->arrayKey("error", $result);
 		}
 
 		if ($error) $result=$error;
@@ -239,9 +206,9 @@ class base
 				if ($html=="html") $return=$this->msg(1, $return);	
 			}
 			else {
-				if (is_array($query)) $query=arrayKey(0, $query);
+				if (is_array($query)) $query=$this->arrayKey(0, $query);
 				$reference	=$this->abbr($query, " ", 2);
-				$return	=varKey("error_{$reference}");
+				$return	=$this->varKey("error_{$reference}");
 			}
 			echo $return;
 		}
@@ -250,15 +217,15 @@ class base
 	public function result($query, $bind="") {
 		if ($query) {
 			if (is_array($query)) {
-				$nquery	=arrayKey(0, $query);
-				$bind	=arrayKey(1, $query, $bind);
+				$nquery	=$this->arrayKey(0, $query);
+				$bind	=$this->arrayKey(1, $query, $bind);
 			}
 			else {
 				$nquery	=$query;
 			}
 			if (!stristr($nquery, " LIMIT ")) $nquery=$nquery." LIMIT 0, 1";
 			$result	=$this->query($nquery, $bind);
-			if (is_array($result)) $result=arrayKey(0, $result, []);
+			if (is_array($result)) $result=$this->arrayKey(0, $result, []);
 			
 			return $result;
 		}
@@ -282,8 +249,6 @@ class base
 				$response	=$result;
 			}
 			if (!$response) {
-				//echo "$query<br>";
-				//print_r($result);
 			}
 			return $response;
 		}
@@ -293,13 +258,9 @@ class base
 		$text	="";
 		if ($handle) {
 			$array	=$handle->errorInfo();
-			$error	=arrayKey(0, $array);
-			$type	=arrayKey(1, $error);
-			$text	=arrayKey(2, $array);
-			/*
-			message, code, file, line, previous, string, trace
-			$text	=$except->getFile().$except->getLine().$except->getMessage().$except->getCode().$except->getTraceAsString();
-			*/
+			$error	=$this->arrayKey(0, $array);
+			$type	=$this->arrayKey(1, $error);
+			$text	=$this->arrayKey(2, $array);
 		}
 
 		$result	=[];
@@ -328,11 +289,10 @@ class base
 			}
 
 			$trace	=$except->getTrace();
-			$main	=arrayKey(0, $trace);
-			$file	=arrayKey("file", $main);
-			$line	=arrayKey("line", $main);
+			$main	=$this->arrayKey(0, $trace);
+			$file	=$this->arrayKey("file", $main);
+			$line	=$this->arrayKey("line", $main);
 
-			#echo $this->io($main);
 			if ($main) $text.=" on line: {$line} in {$file}";
 
 			trigger_error("{$text}: {$query}", E_USER_ERROR);
@@ -345,23 +305,26 @@ class base
 	}
 	
 	public function msgFormat($array="", $info="", $list="") {
-		global $alert_class, $alert_others, $closeable, $base_assets;
-		
-		$icons	=array(1=>"check-circle", 2=>"info-circle", 3=>"warning", 4=>"times-circle");
-		$images	=array(1=>"success", 2=>"info", 3=>"warning", 4=>"error");
-		$classes=array(1=>"success", 2=>"info", 3=>"warning", 4=>"danger");
+		# globals
+		$text_global	='alert_class,alert_others,closeable,base_assets';
+		$global	=$this->globalVars($text_global);
+		extract($global);
+		# array
+		$icons	=[1=>"check-circle", 2=>"info-circle", 3=>"warning", 4=>"times-circle"];
+		$images	=[1=>"success", 2=>"info", 3=>"warning", 4=>"error"];
+		$classes=[1=>"success", 2=>"info", 3=>"warning", 4=>"danger"];
 		
 		if (is_array($array)) {
-			$class	=arrayKey(0, $array, 2);
-			$text	=arrayKey(1, $array, $info);
+			$class	=$this->arrayKey(0, $array, 2);
+			$text	=$this->arrayKey(1, $array, $info);
 		}
 		else {
 			$class	=$array;	
 			$text	=$info;
 		}
 
-		$icon	=arrayKey($class, $icons);
-		$image	=arrayKey($class, $images);
+		$icon	=$this->arrayKey($class, $icons);
+		$image	=$this->arrayKey($class, $images);
 
 		$icon_image	=$this->fileImage("alert_{$image}.png", $base_assets."images/script-icons/", 1);
 
@@ -378,7 +341,7 @@ class base
 		if ($closeable&&in_array($class, [1, 3, 4])) $alert_text.=$closeable;#
 		
 		if ($alert_class) $classes=$alert_class;
-		$alert_css	=arrayKey($class, $classes, $class);
+		$alert_css	=$this->arrayKey($class, $classes, $class);
 		if (!$alert_class) $alert_css="alert alert-{$alert_css}";
 		if ($alert_others) $alert_css.=" {$alert_others}";
 
@@ -388,16 +351,16 @@ class base
 	
 	public function msg($array="", $info="", $list="") {
 		$result	=$this->msgFormat($array, $info, $list);
-		$text	=arrayKey("text", $result);
-		$class	=arrayKey("class", $result);
+		$text	=$this->arrayKey("text", $result);
+		$class	=$this->arrayKey("class", $result);
 		$html	='<div class="'.$class.'" role="alert">'.$text."</div>";
 		return $html;
 	}
 	
 	public function msgSpan($array="", $info="", $list="") {
 		$result	=$this->msgFormat($array, $info, $list);
-		$text	=arrayKey("text", $result);
-		$class	=arrayKey("class", $result);
+		$text	=$this->arrayKey("text", $result);
+		$class	=$this->arrayKey("class", $result);
 		$class	=$this->textMsg($class, 1);
 		$html	='<span class="'.$class.'">'.$text."</span>";
 		return $html;
@@ -405,8 +368,8 @@ class base
 	
 	public function msgText($array="", $info="", $list="", $span="") {	
 		$result	=$this->msgFormat($array, $info, $list);
-		$text	=arrayKey("text", $result);
-		$class	=arrayKey("class", $result);
+		$text	=$this->arrayKey("text", $result);
+		$class	=$this->arrayKey("class", $result);
 		$class	=$this->textMsg($class, $span);
 		$text	=str_replace(' label-icon', $class, $text);
 		return $text;
@@ -420,23 +383,6 @@ class base
 		return $text;
 	}
 
-	# function for checking variable
-	public function isVar($key, $value="") {
-		# if the variable is not in global variables, set a given value
-		$value    =varKey($key, $value);
-		return $value;
-	}
-	
-	# function for checking array keys
-	public function inArray($key, $array="", $value="") {	
-		return inArray($key, $array, $value);
-	}
-	
-	# function for checking array keys
-	public function arrayKey($key, $array="", $value="") {
-		return arrayKey($key, $array, $value);
-	}
-	
 	public function isJson($value) {
 		$open	=(strstr(".{$value}", '.[')&&strstr("{$value}.", '].'));
 		$close	=(strstr(".{$value}", '.{"')&&strstr("{$value}.", '}.'));
@@ -519,15 +465,15 @@ class base
 			if (!is_array($text)) $bits=explode($exploder, $text);
 			$count	=count($bits);	
 			$lkey	=$count - 1;	
-			$first	=arrayKey(0, $bits);	
-			$last	=arrayKey($lkey, $bits);
+			$first	=$this->arrayKey(0, $bits);	
+			$last	=$this->arrayKey($lkey, $bits);
 			$ext	=$last;
 			if ($text==$ext) $ext="";
 			$name	=str_replace($exploder.$ext, "", $text);
 			$array	=["name"=>$name, "first"=>$first, "ext"=>$ext, "count"=>$count, "last"=>$last];
 			$array	=array_merge($array, $bits);
 			$array["array"]	=$array;
-			if ($key!=="") $result=arrayKey($key, $array);
+			if ($key!=="") $result=$this->arrayKey($key, $array);
 			return $result;
 		}
 	}
@@ -636,8 +582,8 @@ class base
 	public function inWords($number, $type="") {
 		$places		=array("", "thousand", "million", "billion", "trillion", "quadrillion");
 		$part		=explode(".", $number);
-		$number		=arrayKey(0, $part);
-		$decimal	=arrayKey(1, $part);
+		$number		=$this->arrayKey(0, $part);
+		$decimal	=$this->arrayKey(1, $part);
 		
 		$csv_number	=number_format((int)$number);
 		$csv_blocks	=explode(",", $csv_number);
@@ -647,7 +593,7 @@ class base
 		foreach ($csv_blocks as $position=>$csv_block) {
 			$text	=$this->inPart($csv_block);
 			$block_key	=($count_csv - ($position+1));
-			$csv_place	=arrayKey($block_key, $places);
+			$csv_place	=$this->arrayKey($block_key, $places);
 			if ($csv_place) $csv_place=" $csv_place";
 			
 			if ($text) $defined[]=$text.$csv_place;
@@ -655,7 +601,7 @@ class base
 		$words		=[];	
 		$words[]	=implode(", ", $defined);
 		
-		if ($type&&$decimal>0) {
+		if ($type && $decimal>0) {
 			$words[]="point";
 			$words[]=$this->inPart($decimal, $type);
 		}
@@ -671,18 +617,18 @@ class base
 		$array_no	=str_split($number, 1);
 		if ($type=="") {
 			$array_rev	=array_reverse($array_no);
-			$one	=arrayKey(0, $array_rev);
-			$ten	=arrayKey(1, $array_rev);
-			$hundred=arrayKey(2, $array_rev);
+			$one	=$this->arrayKey(0, $array_rev);
+			$ten	=$this->arrayKey(1, $array_rev);
+			$hundred=$this->arrayKey(2, $array_rev);
 			
 			$teens	="";
-			$text_one	=arrayKey($one, $digits);
+			$text_one	=$this->arrayKey($one, $digits);
 			if ($one=="0") $text_one="";
 			if ($ten!="") {
 				$tens	=$ten.$one;
-				$text_tens	=arrayKey($tens, $array_tens);
-				$text_ten	=arrayKey($ten, $array_tens);
-				$text_dten	=arrayKey($ten, $digits);
+				$text_tens	=$this->arrayKey($tens, $array_tens);
+				$text_ten	=$this->arrayKey($ten, $array_tens);
+				$text_dten	=$this->arrayKey($ten, $digits);
 				if ($ten=="0") $text_dten="";
 				$text_ones	=" ".$text_one;
 				if ($text_dten) $teens=$text_dten."ty".$text_ones;
@@ -691,13 +637,13 @@ class base
 				if ($text_tens) $teens=$text_tens;
 				if ($teens=="") $teens=$text_one;
 			}
-			if ($hundred>0) $array_text[]=arrayKey($hundred, $digits)." hundred";
+			if ($hundred>0) $array_text[]=$this->arrayKey($hundred, $digits)." hundred";
 			if ($teens) $array_text[]=$teens;
 			if ($one!="0"&&!$teens) $array_text[]=$text_one;
 		}
 		else {
 			foreach ($array_no as $x=>$digit) {
-				$array_text[]	=arrayKey($digit, $digits);
+				$array_text[]	=$this->arrayKey($digit, $digits);
 			}					
 		}
 		$text	=implode(" ", $array_text);
@@ -751,6 +697,37 @@ class base
 	 
 	public function newPassword($length="") {
 		return $this->randomize($length, "1234");
+	}
+
+	public function globalVars($list="") {
+		if (!$list) $list='cms_connect,exclude,c,control,root,site_base,base_path,cms_path,library,includes,sitename,session_code,session_data,siteid,site_name,site_root,db_sites,array_sites,this_role,this_auth,this_user,current_role,current_user,current_id,current_names,int_action,action,action_name,icon,get_id,icon_name,get_mod,module_name,get_title,mod_array,this_url,tip_class,path_icons,tables,module_sql,lang_array,session_language,is_lang,language,tab_permission,tab_names,tab_array,icon_list,btn_active,btn_other,tab_inner1,tab_inner2,tab_start,tab_end,tab_active,tab_other,print_pages,print_path,date';
+		$array	=explode(",", $list);
+		$vars	=[];
+		foreach ($array as $var) {
+			$var	=trim($var);
+			$value	=$this->formKey($var);
+			$vars[$var]	=$value;
+		}
+		return $vars;
+	}
+	public function lang($text, $from="", $target="en", $ntrans="") {
+		$ntext=trans($text);
+		if (!$ntrans) $ntrans=$text;
+		if ($ntext==$text || !$ntext) $ntext=$this->translate($ntrans);
+		return $ntext;
+	}
+	
+	function translate($label) {
+		$label	=$this->txt("[", $label, "first");
+		$array	=["a_", "to_", "bool_"];
+		foreach ($array as $word) {
+			$label	=str_replace(".{$word}", "", ".{$label}");
+		}
+
+		$label	=trim($label, ".");
+		$label	=str_replace("_", " ", $label);
+		$label	=ucfirst($label);
+		return $label;
 	}
 
 }

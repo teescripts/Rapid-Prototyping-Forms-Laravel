@@ -39,7 +39,11 @@ class main extends base
 	}
 	
 	public function cacheName($name="left", $tab="", $key="") {
-		global $is_mobile, $language, $siteid, $this_role, $get_mod, $get_token;
+		# globals
+		$text_global	='is_mobile,language,siteid,this_role,get_mod,get_token';
+		$global	=$this->globalVars($text_global);
+		extract($global);
+
 		$name	=[$name];
 		if ($language) $name[]=$language;
 		if ($siteid&&strlen($siteid)<8) $name[]=$siteid;
@@ -58,8 +62,8 @@ class main extends base
 	}
 	
 	public function cacheFile($name="left", $tab="", $key="") {
-		$cache	=varKey("base_cache");
-		$temp	=varKey("base_temp");
+		$cache	=$this->varKey("base_cache");
+		$temp	=$this->varKey("base_temp");
 		$path	=$cache."admin/";
 		$name	=$this->cacheName($name, $tab, $key);
 
@@ -72,14 +76,14 @@ class main extends base
 	}
 
 	public function link($link, $activate=1) {
-		$appid	=varKey("app_extension");
+		$appid	=$this->varKey("app_extension");
 		if (!strstr($link, "token")) $appid.=$appid;
 		$link	=str_replace("??", "?", $link);
 		$link	=str_replace(".php/", ".php?", $link);
 		$link	=str_replace(".php&", ".php?", $link);
 		$chip	=explode("?", $link);
-		$plain	=arrayKey(0, $chip);
-		$query	=arrayKey(1, $chip);
+		$plain	=$this->arrayKey(0, $chip);
+		$query	=$this->arrayKey(1, $chip);
 
 		$nquery	=str_replace("action=", "", $query);
 		$nquery	=str_replace("&icon=", "/", $nquery);
@@ -122,7 +126,11 @@ class main extends base
 	}
 	
 	public function multi($values, $query, $url="", $class="", $full="") {
-		global $tip_class, $btn_group, $btn_link, $icon;
+		# globals
+		$text_global	='tip_class,btn_group,btn_link,icon';
+		$global	=$this->globalVars($text_global);
+		extract($global);
+
 		$txt	=[];
 		$view	=in_array($icon, explode(",", "view,update,insert,print"))?1:0;
 		if ($full) $view=$full;
@@ -165,7 +173,7 @@ class main extends base
 	public function map($values, $value, $type="", $extra="") {	
 		if (is_string($values)) {
 			if (strstr(".{$values}", ".list_")) {
-				$values=varKey($values);
+				$values=$this->varKey($values);
 			}
 		}
 		$array	=$values;
@@ -178,7 +186,7 @@ class main extends base
 		$keys	=$this->arrayConvert($value, "keys");
 		foreach ($keys as $key) {
 			$key	=trim($key);
-			$text	=arrayKey($key, $array, $key);
+			$text	=$this->arrayKey($key, $array, $key);
 			if ($text) {
 				$class	="";
 				if ($type) $class=$this->btnClass($key, $type, $extra);
@@ -198,7 +206,7 @@ class main extends base
 	
 	public function tagExtract($tag, $text) {
 		$tag_array	=$this->arrayFormat($text);
-		$new_value	=arrayKey($tag, $tag_array);
+		$new_value	=$this->arrayKey($tag, $tag_array);
 		return $new_value;
 	}
 		
@@ -218,10 +226,10 @@ class main extends base
 	}
 		
 	public function globalize($list="") {
-		$values	=varKey($list);
+		$values	=$this->varKey($list);
 		if ($values) {
 			$name	=str_replace("list_", "array_", $list);
-			$array	=varKey($name);
+			$array	=$this->varKey($name);
 			if (!is_array($array)) {
 				$array	=$this->arrayConvert($values, "tree");
 				$GLOBALS[$name]	=$array;
@@ -234,8 +242,8 @@ class main extends base
 	public function mapType($array_type) {
 		$text	=[];
 		foreach ($array_type as $key) {
-			$head	=arrayKey("name", $key);
-			$child	=arrayKey("children", $key);
+			$head	=$this->arrayKey("name", $key);
+			$child	=$this->arrayKey("children", $key);
 			if ($child) {
 				foreach ($child as $row) {
 					$value	=$row["id"];
@@ -254,9 +262,9 @@ class main extends base
 	public function label($array, $fields=[], $temp="", $join=", ") {
 		if (!$temp) $temp='{t}: {v}';
 		$text	=[];
-		$key1	=arrayKey(0, $fields);
+		$key1	=$this->arrayKey(0, $fields);
 		foreach ($fields as $key=>$field) {
-			$value	=arrayKey($field, $array);
+			$value	=$this->arrayKey($field, $array);
 			if ($value) {
 				if (strstr($key, '{v}')) {
 					$ntemp	=$key;
@@ -339,14 +347,14 @@ class main extends base
 		
 		$interval	=array("year"=>$years, "month"=>$months, "week"=>$weeks, "day"=>$day, "days"=>$days, "hour"=>$hours, "minute"=>$minutes, "second"=>$seconds);
 		
-		$result	=arrayKey($type, $interval, $interval);
+		$result	=$this->arrayKey($type, $interval, $interval);
 		return $result;
 	}
 	
 	public function dateDiff($start, $end, $type="", $decimal="") {
 		$array	=$this->dateArray($start, $end, "array");
-		$result	=arrayKey($type, $array);
-		if (!$result) $result=arrayKey("hour", $array);
+		$result	=$this->arrayKey($type, $array);
+		if (!$result) $result=$this->arrayKey("hour", $array);
 
 		$result	=($decimal)?number_format((float)$result, 2):round($result);
 		return $result;
@@ -368,7 +376,7 @@ class main extends base
 			if ($value>1) $title.="s";
 			$text	="{$value} {$title}";
 			if ($value&&in_array($label, $labels)) $array[]=$text;
-			if ($max&&$array) return "Over {$text}";
+			if ($max && $array) return "Over {$text}";
 		}
 		$text	=implode(", ", $array);
 		if (substr($date, 0, 4)=="0000") $text="";
@@ -376,14 +384,14 @@ class main extends base
 	}
 	
 	public function conCat($column="", $row="") {
-		$label	=arrayKey($column, $row);
+		$label	=$this->arrayKey($column, $row);
 		if ($column&&!strstr(strtoupper($column), "CONCAT")) {
 			$fields	=explode(",", $column);
 			if (count($fields)>1) {
 				$quotes	=str_split("()[]{}:-#<>= ", 1);
 				$label	=[];
 				foreach ($fields as $field) {
-					$value	=arrayKey($field, $row);
+					$value	=$this->arrayKey($field, $row);
 
 					$trim	=trim($field);
 					if ($field==" ") $trim=$field;
@@ -418,7 +426,7 @@ class main extends base
 		$row_value		=[];
 		if (is_array($results)) {
 			foreach ($results as $key=>$row) {
-				$row_key	=arrayKey($key_column, $row);
+				$row_key	=$this->arrayKey($key_column, $row);
 				$row_label	=$this->conCat($value_column, $row);
 				$row_key	=str_replace("*", "x", $row_key);
 				$row_label	=str_replace("*", "x", $row_label);	
@@ -447,14 +455,14 @@ class main extends base
 			$count	=count($array);
 			$keys	=array_keys($array);
 			for ($key=0; $key<$count; $key++) {
-				$word	=arrayKey($key, $keys);
-				$replace=arrayKey($word, $array);
+				$word	=$this->arrayKey($key, $keys);
+				$replace=$this->arrayKey($word, $array);
 				$upper	=strtoupper($word);
 				$nquery	=str_ireplace($word, $upper, $nquery);
 				$chip	=explode($upper, $nquery);
 				if (count($chip)>1) {
 					$last	=array_key_last($chip);
-					$text	=arrayKey($last, $chip);
+					$text	=$this->arrayKey($last, $chip);
 					$nquery	=str_replace($upper.$text, $replace.$text, $nquery);
 					$key	=$count;
 				}
@@ -472,7 +480,8 @@ class main extends base
 	}
 	
 	public function sqlBool($text="", $strip="") {
-		global $sql_where;
+		$sql_where	=$this->formKey("sql_where");
+
 		if (!$text) $text=$sql_where;
 		$text	=trim($text);
 		$exists	=stristr(".{$text}", "where");
@@ -499,8 +508,8 @@ class main extends base
 		$border	="JHRoaXMtPm";
 		if ($process&&strstr($list, $border)) {
 			$strings=explode("*", $text);
-			$inits	=arraykey(0, $strings);
-			$value	=arraykey(1, $strings);
+			$inits	=$this->arrayKey(0, $strings);
+			$value	=$this->arrayKey(1, $strings);
 			$side	=[];
 			if ($value) {
 				$side[]	=$inits;
@@ -541,7 +550,7 @@ class main extends base
 	}
 		
 	public function sqlType($field="", $list="") {
-		$list_type	=varKey($list);
+		$list_type	=$this->varKey($list);
 		$array_type	=$this->arrayConvert($list_type, "list");
 		$type	=$field;
 		foreach ($array_type as $key=>$value) {
@@ -551,7 +560,11 @@ class main extends base
 	}
 	
 	public function levelFilter($user_type, $user_column, $group_column, $group_value) {
-		global $level_user, $this_role;
+		# globals
+		$text_global	='level_user,this_role';
+		$global	=$this->globalVars($text_global);
+		extract($global);
+
 		$array_access	=array(
 			3=>array($user_type=>[$user_column, $level_user]), 
 			2=>array($this_role=>[$group_column, $group_value])
@@ -561,25 +574,29 @@ class main extends base
 	}
 	
 	public function accessFilter($access_array) {
-		global $perm_access, $perm_type, $perm_supercede, $this_role, $sql_where;
+		# globals
+		$text_global	='perm_access,perm_type,perm_supercede,this_role,sql_where';
+		$global	=$this->globalVars($text_global);
+		extract($global);
+
 		$supercede	=($perm_supercede!=1 && ($perm_access==1||$perm_type==1));
-		$perm_types	=arrayKey($perm_access, $access_array);
+		$perm_types	=$this->arrayKey($perm_access, $access_array);
 		
-		if (!$perm_types&&$supercede) $perm_types=arrayKey(2, $access_array);
+		if (!$perm_types && $supercede) $perm_types=$this->arrayKey(2, $access_array);
 		
 		$result	=$sql_where;
 		if ($perm_types) {
-			$access	=arrayKey($this_role, $perm_types);
-			$column	=arrayKey(0, $access);
-			$value	=arrayKey(1, $access);
-			$where	=arrayKey(2, $access);
-			$flip	=arrayKey(3, $access);
+			$access	=$this->arrayKey($this_role, $perm_types);
+			$column	=$this->arrayKey(0, $access);
+			$value	=$this->arrayKey(1, $access);
+			$where	=$this->arrayKey(2, $access);
+			$flip	=$this->arrayKey(3, $access);
 				
 			$bool	="";
 			if ($perm_access>=3) $bool="equal";
 
 			$where1	="";
-			if ($column&&$value) $where1=$this->where($column, $value, $bool, $flip);
+			if ($column && $value) $where1=$this->where($column, $value, $bool, $flip);
 			if ($where1) $result.=$this->sqlBool($result).$where1;
 			if ($where) $result.=$this->sqlBool($result).$where;
 		}
@@ -587,7 +604,9 @@ class main extends base
 	}
 	
 	public function where($column, $value, $bool="", $reverse="") {
-		global $my_operator, $level_bool;	
+		# globals
+		$level_bool	=$this->formKey("level_bool");
+		$my_operator=$this->formKey("my_operator");
 		
 		if (!$bool) $bool=$level_bool;
 		$operator	=($my_operator)?$my_operator:"OR";
@@ -613,7 +632,7 @@ class main extends base
 	function autoNo($total) {
 		$token	="tsp_total";
 		if (!$total) {
-			$total	=varKey($token, 0);
+			$total	=$this->varKey($token, 0);
 			$total	=($total + 1);
 			$GLOBALS[$token]	=$total;
 		}
@@ -637,7 +656,7 @@ class main extends base
 		if (!$post) $post=$_POST;
 		$array	=explode(",", $fields);
 		foreach ($array as $field) {
-			$amount	=arrayKey($field, $post);
+			$amount	=$this->arrayKey($field, $post);
 			if ($amount) {
 				$amount	=$this->intVal($amount);
 				$post[$field]	=$amount;
@@ -668,7 +687,7 @@ class main extends base
 		$count	=0;
 		$array	=[];
 		foreach ($array_vals as $key=>$col_fm) {
-			$key1	=arrayKey($key, $array_key1);
+			$key1	=$this->arrayKey($key, $array_key1);
 			$number	=preg_replace("/[0-9]+/", "", $key1);
 
 			if ($number=="") {
@@ -679,7 +698,7 @@ class main extends base
 				$col_db	=$key1;
 			}
 			
-			$value	=arrayKey($col_fm, $data);
+			$value	=$this->arrayKey($col_fm, $data);
 			if ($value!=""||strstr($ignore, $col_fm)) {#
 				$array[$col_db]	=$value;
 			}
@@ -705,8 +724,8 @@ class main extends base
 		$keys	=array_keys($merge);
 		$array	=array();
 		foreach ($keys as $colm) {
-			$value	=arrayKey($colm, $data);
-			$value	=arrayKey($colm, $values, $value);
+			$value	=$this->arrayKey($colm, $data);
+			$value	=$this->arrayKey($colm, $values, $value);
 			$array[$colm]	=$value;#if ($value) 
 		}
 		return $array;
@@ -717,9 +736,9 @@ class main extends base
 			$option	=[];
 			foreach ($text as $akey=>$arow) {
 				if (is_array($arow)) {
-					$avalue	=arrayKey("id", $arow);
-					$alabel	=arrayKey("name", $arow);
-					$child	=arrayKey("children", $arow);
+					$avalue	=$this->arrayKey("id", $arow);
+					$alabel	=$this->arrayKey("name", $arow);
+					$child	=$this->arrayKey("children", $arow);
 					if (is_array($child)) {
 						$item	=array();
 						foreach ($child as $key=>$row) {
@@ -804,7 +823,7 @@ class main extends base
 		if ($unset) {
 			if (!is_array($unset)) $unset=explode(",", $unset);
 			foreach ($unset as $key) {
-				if (arrayKey($key, $array)) unset($array[$key]);
+				if ($this->arrayKey($key, $array)) unset($array[$key]);
 			}
 		}
 		return $array;
@@ -851,8 +870,8 @@ class main extends base
 		$array	=explode(";", $list);
 		foreach ($array as $value) {
 			$keys	=explode('=>', $value);
-			$key	=arraykey(0, $keys);
-			$label	=arraykey(1, $keys, $key);
+			$key	=$this->arrayKey(0, $keys);
+			$label	=$this->arrayKey(1, $keys, $key);
 			$text	=$key.'=>'.$label;
 			$new[]	=$text;
 		}
@@ -905,12 +924,11 @@ class main extends base
 			$json	=$this->toJson($list);
 			$array	=json_decode($json, true);
 			$pair	=strstr($json, '":"');
-			//echo "<hr> ".print_r($json, 1);
 		}
 
 		if (is_array($array)) {
 			$result	=$this->arrayTree($array, $pair);
-			$result =arrayKey($type, $result, $result);
+			$result =$this->arrayKey($type, $result, $result);
 		}
 		else {
 			$result =$list;
@@ -939,7 +957,7 @@ class main extends base
 							$data["pair"][$key]	="{$label}";# ({$title})
 							$data["child"][]	=$array;
 						}
-						if ($count==$total&&$parent) {
+						if ($count==$total && $parent) {
 							$data["pair"][$key]	=$label;
 							$data["main"][$parent]	=$group;
 							$group["children"]		=$data["child"];
@@ -977,10 +995,10 @@ class main extends base
 		if (!$type) $type=3;
 		if (!is_file($file)) {
 			$types	=[1=>"male", 2=>"female", 3=>"other", 4=>"food", 5=>"dummy"];
-			$file	=arrayKey($type, $types, $type);#no_image
+			$file	=$this->arrayKey($type, $types, $type);#no_image
 			$file	="{$file}.png";
 			$ext	=pathinfo($file, PATHINFO_EXTENSION);
-			$path	=varKey("base_docs");
+			$path	=$this->varKey("base_docs");
 			$file	=$path."stock/no_photo/{$file}";
 
 			if (in_array(strtolower($ext), $images)) $source=$file;
@@ -1003,9 +1021,9 @@ class main extends base
 				$ndata	=strlen($data);
 				$ndata	=($ndata % $count);
 			}
-			$color	=arrayKey($ndata, $colors);
+			$color	=$this->arrayKey($ndata, $colors);
 		}
-		$result	=arrayKey(0, $colors);
+		$result	=$this->arrayKey(0, $colors);
 		if ($color) $result=$color;
 		
 		return $result;
@@ -1018,19 +1036,19 @@ class main extends base
 		
 	public function getColor($type="") {
 		$colors	="primary,success,info,warning,danger,secondary,dark";
-		$colors	=varKey("btn_colors", $colors);
-		if ($type==1) $colors=varKey("boot_colors", $colors);
+		$colors	=$this->varKey("btn_colors", $colors);
+		if ($type==1) $colors=$this->varKey("boot_colors", $colors);
 		if (!is_array($colors)) $colors=explode(",", $colors);
 		return $colors;
 	}
 		
 	public function btnClass($color="", $type="", $extra="") {
-		$btn_mini	=varKey("btn_mini", "btn-sm");
-		$btn_prefix	=varKey("btn_prefix", "btn-");
+		$btn_mini	=$this->varKey("btn_mini", "btn-sm");
+		$btn_prefix	=$this->varKey("btn_prefix", "btn-");
 		$minify	="{$btn_mini} {$btn_prefix}";
 		
 		$array	=[1=>"text-", 2=>"badge rounded-pill bg-* badge-* badge-gradient-", 3=>$minify, 4=>"btn {$minify}", 5=>$btn_prefix];
-		$prefix	=arrayKey($type, $array, $array[2]);
+		$prefix	=$this->arrayKey($type, $array, $array[2]);
 		$result	="";
 		if ($prefix) $result=trim($prefix)."*";
 		if ($extra) $result.=" {$extra}";
@@ -1065,10 +1083,11 @@ class main extends base
 		return '<script type="text/javascript">open("'.$window_url.'", "'.$target.'", "'.$settings.'");</script>';//window.open();";
 	}
 	
-	public function ajax($text, $next="", $new_next="") {	
-		global $btn_value, $c;
+	public function ajax($text, $next="", $new_next="") {
+		$load_data	=$this->lang("load_data");
+		$btn_value	=$this->formKey("btn_value");
 		
-		$ajax_part	=($btn_value	==$c['load_data'])?"ajaxpart":"ajax_part";	
+		$ajax_part	=($btn_value==$load_data)?"ajaxpart":"ajax_part";	
 		
 		$text		=$this->commaColon($text);
 		$split		=explode(",", $text);
@@ -1089,11 +1108,6 @@ class main extends base
 		
 		return $n_event;
 	}
-	public function lang($text, $from="", $target="en", $ntrans="") {
-		$ntext=trans($text);
-		if (!$ntext) $ntext=$text;
-		return $ntext;
-	}
 
 	public function censor($text="") {
 		return $text;			  
@@ -1102,44 +1116,82 @@ class main extends base
 	public function naming($field) {
 		$alias	="";
 		$bits	=explode("=", $field);
-		$name	=arrayKey(0, $bits);	
-		$alias	=arrayKey(1, $bits);
+		$name	=$this->arrayKey(0, $bits);	
+		$alias	=$this->arrayKey(1, $bits);
 		#$name	=str_replace(".", "_", $name);
 
 		$key	=$name;	 		
 		if (count($bits)>1) $key=$alias;
 		$ignore	=strstr("{$key}.", "].");
-		$label	=$this->labelFormat($key);
-		if (!$ignore) $label=$this->lang($label, "en", "en", $label);
-		
+		$label	=$this->translate($key);
+		if (!$ignore) {
+			$lang	=$this->lang($key, "en", "en", $label);
+			if (!is_array($lang)) $label=$lang;
+		}
 		$array	=["name"=>$name, "label"=>$label, "alias"=>$alias];
 		return $array;
 	}
-	function labelFormat($label) {
-		$label	=$this->txt("[", $label, "first");
-		$array	=["a_", "to_", "bool_"];
-		foreach ($array as $field) {
-			$label	=str_replace(".{$field}", "", ".{$label}");
+	
+
+	function imgGroup($dataid, $folder="", $type=3) {
+
+		$array	=[
+			1=>["avatar-xxs", "21x21"], 
+			2=>["avatar-xs", "28x28"], 
+			3=>["avatar-sm", "42x42"], 
+			4=>["avatar-md", "63x63"], 
+			5=>["avatar-lg", "84x84"], 
+			6=>["avatar-xl", "105x105"], 
+		];
+		
+		$row	=$this->arrayKey($type, $array);
+		$class	=$this->arrayKey(0, $row, $type);
+		$size	=$this->arrayKey(1, $row, "20x20");
+		$abbr	=$type;
+		
+		$item	=[];
+
+		$dataid	=str_replace(";", ",", $dataid);
+		$files	=explode(",", $dataid);
+		array_unique($files);
+		foreach ($files as $key=>$image) {
+			$path	="{$folder}/{$image}";
+			
+			$file	=$this->path_cdn($path);
+			if ($file) {
+				$icon	='<img src="'.$file.'" class="[class]" alt="'.$path.'" />';
+
+				$item[]	='<a href="#" class="tip-top" title="'.$image.'" data-featherlight="'.$file.'">'.$icon.'</a>';
+			}
 		}
+		$count	=count($item);
+		if ($count==1) $class.=' me-1 shadow';
 
-		$label	=trim($label, ".");
-		$label	=ucfirst($label);
-		$label	=str_replace("_", " ", $label);
-		return $label;
+		if ($count>5 && $type<3) $item[]='
+		<div class="avatar-title text-white [class]">
+			'.$count.'
+		</div>';
+
+		$text	=implode("\n\t\t", $item);
+		$text	=str_replace('[class]', 'avatar-container-item '.$class, $text);
+		$text	='<div class="avatar-container">'.$text.'</div>';
+		return $text;
 	}
-
+	
 	function path_cdn($script="") {
-		$url_cdn	=constKey("CDN");
-		$url_path	=str_replace("../", "", $script);
-		$url_path	="{$url_cdn}/{$url_path}";
+		$root_path	=base_path();
+		$url_cdn	=$this->constKey("app.link.cdn");
+		$url_path	=str_replace($root_path, $url_cdn, $script);
+		//$url_path	=asset($url_path);
+		//$url_path	="{$url_cdn}/{$url_path}";
 		return $url_path;
 	}
 	
 	function path_url($script="") {
-		$url_cdn	=constKey("CDN");
-		$url_base	=constKey("URL");
-		$url_temp	=varKey("base_temp");
-		$url_this	=arrayKey("HTTP_HOST", $_SERVER);
+		$url_cdn	=$this->constKey("app.link.cdn");
+		$url_base	=$this->constKey("app.root.cdn");
+		$url_temp	=$this->varKey("base_temp");
+		$url_this	=$this->arrayKey("HTTP_HOST", $_SERVER);
 		$url_script	=str_replace("../", "", $script);
 		if (strstr($url_base, $url_this)) {
 			$url_cdn	=$url_base;
@@ -1151,10 +1203,7 @@ class main extends base
 	}
 	
 	function path_lists($list="") {
-		$temp	=varKey("base_temp");
-		$path	=$this->path_url($temp);
-		$link	=$path."load.php?url=Load/Ajax&file={$list}";
-		$link	=$path."pages/lists.php?url=Lists/{$list}";
+		$link	=url("Lists/{$list}");
 		return $link;
 	}
 	

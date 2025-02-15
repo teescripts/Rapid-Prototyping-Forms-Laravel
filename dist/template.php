@@ -1,11 +1,14 @@
 <?php
 namespace Teescripts\RptForms;
 
-class template {
+final class template extends base {
+	function __construct() {
+	}
+	
 	function template($type="") {
 		
 		$label	="label-control";
-		$row_class	=varKey("block_class");#readonly_class
+		$row_class	=$this->varKey("block_class");#readonly_class
 		if (!$row_class) $row_class="bd-b pd-b-5 is-div not-form";#
 
 		# form-blocks
@@ -328,9 +331,9 @@ class template {
 		];
 
 		if ($type) {
-			$result	=arrayKey($type, $layouts, $layouts["NA"]);
-			$form	=arrayKey("form", $result);
-			$label	=arrayKey("label", $result);
+			$result	=$this->arrayKey($type, $layouts, $layouts["NA"]);
+			$form	=$this->arrayKey("form", $result);
+			$label	=$this->arrayKey("label", $result);
 			$result	=["form"=>$form, "label"=>$label];
 		}
 		else {

@@ -2,7 +2,7 @@
 namespace Teescripts\RptForms;
 
 use Teescripts\RptForms\table;
-class layout extends table
+final class layout extends table
 {
 	function __construct() {
 		parent::__construct();

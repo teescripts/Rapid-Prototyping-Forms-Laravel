@@ -2,6 +2,7 @@
 namespace Teescripts\RptForms;
 
 use Teescripts\RptForms\main;
+use Teescripts\RptForms\data;
 
 class form extends main
 {
@@ -33,8 +34,8 @@ class form extends main
 		$list	=$values;
 		if (strstr($values, "*")) {
 			$array	=$this->txt("*", $values);
-			$value	=arrayKey(0, $array);
-			$list	=arrayKey("ext", $array);
+			$value	=$this->arrayKey(0, $array);
+			$list	=$this->arrayKey("ext", $array);
 		}
 
 		if ($type=="jmenu" && !strstr($attrib, 'href=')) $attrib='href="'.$attrib.'"';
@@ -61,29 +62,29 @@ class form extends main
 		$tags	=$this->arrayFormat($attrib);
 		$multi	=strstr($attrib, "multiple");
 
-		$wrapped=arrayKey("wrap", $tags);
-		$prefix	=arrayKey("prefix", $tags);
-		$suffix	=arrayKey("suffix", $tags);
-		$vtype	=arrayKey("vtype", $tags, "form");
-		$decimal=arraykey("data-decimal", $tags);
-		if ($decimal==="") $decimal=arraykey("decimal", $tags);
-		$ntype	=arrayKey("type", $tags, $type);
+		$wrapped=$this->arrayKey("wrap", $tags);
+		$prefix	=$this->arrayKey("prefix", $tags);
+		$suffix	=$this->arrayKey("suffix", $tags);
+		$vtype	=$this->arrayKey("vtype", $tags, "form");
+		$decimal=$this->arrayKey("data-decimal", $tags);
+		if ($decimal==="") $decimal=$this->arrayKey("decimal", $tags);
+		$ntype	=$this->arrayKey("type", $tags, $type);
 		
-		$get_id	=arraykey("id", $tags);
-		$get_href	=arrayKey("href", $tags);
-		$get_class	=arraykey("class", $tags);
-		$data_url	=arrayKey("data-path", $tags);
-		if (!$data_url) $data_url=arrayKey("path", $tags);
+		$get_id	=$this->arrayKey("id", $tags);
+		$get_href	=$this->arrayKey("href", $tags);
+		$get_class	=$this->arrayKey("class", $tags);
+		$data_url	=$this->arrayKey("data-path", $tags);
+		if (!$data_url) $data_url=$this->arrayKey("path", $tags);
 		
 		$isCSV	=(strstr($attrib, 'csv-')||strstr($attrib, 'number-')||strstr($attrib, 'money-')||strstr($attrib, 'numeric-'));
-		$unset	="type,wrap,vtype,prefix,suffix";
+		$unset	="type,wrap,vtype,prefix,suffix,help";
 		if (!$isCSV) $unset.=",decimal";
 		$tags	=$this->arrayUnset($tags, $unset);
 		$attrib	=$this->arrayTags($tags);
 		if ($wrapped) {
 			$form_type	="wrap";
 
-			if ($vtype=="form"&&$ntype) $type=$ntype;
+			if ($vtype=="form" && $ntype) $type=$ntype;
 			if (in_array($vtype, ["text", "select", "textarea"])) $type=$vtype;
 		}
 
@@ -107,8 +108,8 @@ class form extends main
 		$input_list	=$value_list;
 		
 		$array_data	=$this->listName($input_list, $data_url, $form_type);
-		$list_name	=arrayKey("name", $array_data);
-		$list_path	=arrayKey("path", $array_data);
+		$list_name	=$this->arrayKey("name", $array_data);
+		$list_path	=$this->arrayKey("path", $array_data);
 
 		$data_list	="";
 		if (in_array($form_type, ["grid", "combo", "tree"])) {
@@ -130,9 +131,18 @@ class form extends main
 		#----------- 
 		$array_list	=[];
 		if ($options) {
-			if ($data_list) $input_list=varKey($data_list);# && strstr($list_path, "list_")
+			if ($data_list) {
+				$input_list	=$this->varKey($data_list);
+			}
+			else {
+				$data	=new data();
+				$is_fx	=method_exists($data, "{$list_name}List");
+				if ($is_fx) {
+					$input_list	=$this->load("lists")->loadList("lists/array/{$list_name}");
+				}
+			}
 			
-			if (strstr($input_list, "array_")) {
+			if (is_array($input_list)) {
 				$array_list	=$input_list;
 			}
 			elseif ($input_list) {
@@ -142,11 +152,8 @@ class form extends main
 			}
 			if ($data_url && $input_def && !$input_list) {
 				$attrib1	.=' data-value="'.$input_def.'"';
-				//$array_list	=[$input_def];
-				//$array_init	=[$input_def];
 			}
 
-			#$input_def	=str_replace(',', '[cm]', $input_def);
 			$array_init	=$this->arrayConvert($input_def, "keys");
 		}
 		else {
@@ -170,7 +177,7 @@ class form extends main
 		$rule		=strtolower($validate);
 		$arule		=str_split($validate);
 		$required	=0;
-		if (arrayKey(0, $arule)=="r"||$rule=="yes") {
+		if ($this->arrayKey(0, $arule)=="r"||$rule=="yes") {
 			$required	=1;
 			$rule	=substr($rule, 1, strlen($rule));
 			if ($rule=="yes") $rule="";				
@@ -195,7 +202,7 @@ class form extends main
 		
 		$new_list	="number,search,tel,url,email,datetime,date,month,week,time,range";#,datetime-local,color
 		$new_array	=explode(",", $new_list);
-		//if (in_array($rule, $new_array)&&$type=="text") $type=$rule;
+		//if (in_array($rule, $new_array) && $type=="text") $type=$rule;
 		
 		if (strlen($input_def)=="7" && substr($input_def, 0, 1)=="#") $attrib2.=' style="background-color:'.$input_def.'"';
 		#----------- 
@@ -215,12 +222,14 @@ class form extends main
 				
 				$vclass	=[];
 				if ($required) $vclass[]="required";
-				if (strstr($rule, "range")) {	
+				if (strstr($rule, "range") && !$is_date) {	
 					$range	=str_replace("inrange", "", $rule);
 					$chip	=explode("-", $range);
-					$min	=arrayKey(0, $chip);
-					$max	=arrayKey(1, $chip);		  
-					$vclass[]	='integer],min['.$min.'],max['.$max;
+					$min	=$this->arrayKey(0, $chip);
+					$max	=$this->arrayKey(1, $chip);
+					$min_max	='integer],min['.$min.']';
+					if ($max) $min_max.=',max['.$max;
+					$vclass[]	=$min_max;
 				}
 				if (strstr($rule, "min")) {	
 					$min	=str_replace("min", "", $rule);
@@ -240,11 +249,11 @@ class form extends main
 		}
 		
 		$alt_type	=["number", "month", "time", "date", "datetime", "url", "year", "color"];
-		$ntype	=inArray($type, $alt_type, $type);
+		$ntype	=$this->inArray($type, $alt_type, $type);
 		if ($type=="datalist") $ntype="text";
 
-		$tclass	=varKey("{$ntype}_class");
-		if (!$tclass) $tclass=varKey("text_class", "form-control");#
+		$tclass	=$this->formKey("{$ntype}_class");
+		if (!$tclass) $tclass=$this->formKey("text_class", "form-control");#
 		
 		$nclass	=$get_class;
 		if (!$nclass) $nclass=$tclass;
@@ -296,7 +305,7 @@ class form extends main
 		}
 		elseif (in_array($type, ["radio", "checkbox"]))  {
 			if ($count_input>1) {
-				$class_name	=varKey("group_class_{$type}");
+				$class_name	=$this->formKey("group_class_{$type}");
 				$group_class="group-class-{$type}";
 				if ($class_name) $group_class.=" {$class_name}";
 
@@ -328,11 +337,11 @@ class form extends main
 		}
 		# -------------- password field	
 		elseif ($type=="password") {
-			$hash	=varKey("password_hash");
+			$hash	=$this->formKey("password_hash");
 			$attrib1	.=' autocomplete="off"';
 
 			$text_open	="";
-			if ($hash&&$input_def) {
+			if ($hash && $input_def) {
 				$attrib3	=str_replace($form_id, "old_{$new_name}1", $attrib1);
 				$attrib3	=str_replace($form_class, $form_class." reset_pass", $attrib3);
 
@@ -392,7 +401,7 @@ class form extends main
 			#$input_def =strip_tags($input_def);
 			$input_def =htmlentities($input_def, ENT_COMPAT);
 			if (is_array($input_def)) $input_def=json_encode($input_def);
-			if ($decimal!==""&&$input_def) $input_def=number_format((float)$input_def, $decimal);
+			if ($decimal!=="" && $input_def) $input_def=number_format((float)$input_def, $decimal);
 			$text_form	.='
 				<input type="'.$type.'" name="'.$form_name.'" value="'.$input_def.'" '.$attrib1." />";				
 		}
@@ -412,7 +421,7 @@ class form extends main
 				$prefix	="";
 				$suffix	="";
 			}
-			$tclass	=varKey("text_class");
+			$tclass	=$this->formKey("text_class");
 			$dclass	=str_replace("*", $tclass, $dclass);
 			$dclass	=str_replace("richtext", "ignore", $dclass);
 			$dclass	=str_replace("elastic-input", "", $dclass);
@@ -424,10 +433,10 @@ class form extends main
 			if ($input_def&&!$text_form) $text_form=$input_def;	
 
 			$text_open	='<div class="'.$dclass.'">';
-			if ($input_def&&$prefix) $text_open.="{$prefix} ";
+			if ($input_def && $prefix) $text_open.="{$prefix} ";
 			
 			$text_close	="";
-			if ($input_def&&$suffix) $text_close="{$suffix}";
+			if ($input_def && $suffix) $text_close="{$suffix}";
 			$text_close	.='</div>';
 		}
 
@@ -441,7 +450,7 @@ class form extends main
 			if (strstr("2 3", $wrapped)) {
 				$form_group	=$text_form;
 				for ($form=2; $form<=$wrapped; $form++) {
-					$text_icon	=arrayKey("prefix{$form}", $tags);
+					$text_icon	=$this->arrayKey("prefix{$form}", $tags);
 					$form_group	.=$this->addon($text_icon, $input_def, 1, $form_class);
 					$form_group	.=$text_form;
 				}
@@ -453,7 +462,7 @@ class form extends main
 		$form_text	=$text_open;
 		$form_text	.=$text_form;
 		$form_text	.=$text_close;
-
+		
 		return $form_text;
 	}
 
@@ -500,21 +509,21 @@ class form extends main
 	}
 
 	public function placeholder($text, $name="", $type="") {
-		$no_option	=varKey("no_option");
+		$no_option	=$this->formKey("no_option");
 		$array_tags	=$this->arrayFormat($text);
-		$form_class	=varKey("select_class");
-		$old_title	=arrayKey("placeholder", $array_tags);
+		$form_class	=$this->formKey("select_class");
+		$old_title	=$this->arrayKey("placeholder", $array_tags);
 		$new_title	=$old_title;
 
 		if ($old_title=="none") $no_option=1;
-		if ($no_option!=1&&!$old_title) {
+		if ($no_option!=1 && !$old_title) {
 			$new_title	=$no_option;
 			if ($no_option<1) {
 				$new_title	=$this->lang($name);
 			}
 		}
 		
-		if ($type=="select"&&!$new_title) $new_title=" -------- ";
+		if ($type=="select" && !$new_title) $new_title=" -------- ";
 		$new_title	=" {$new_title} ...";
 		$new_title	=strip_tags($new_title);
 		if (stristr($form_class, "material")) {
@@ -525,9 +534,9 @@ class form extends main
 	}
 
 	public function tagText($text_tags, $array_tags) {
-		$new_title	=arrayKey(0, $array_tags);
-		$old_title	=arrayKey(1, $array_tags);
-		$hide_option=arrayKey(2, $array_tags);
+		$new_title	=$this->arrayKey(0, $array_tags);
+		$old_title	=$this->arrayKey(1, $array_tags);
+		$hide_option=$this->arrayKey(2, $array_tags);
 		$text_tags	=str_replace('placeholder="'.$old_title.'"', '', $text_tags);
 		if ($new_title!=" ") {
 			if ($hide_option!=1) $text_tags.=' placeholder="'.$new_title.'"';
@@ -537,15 +546,15 @@ class form extends main
 	}
 
 	public function optionList($list, $default="", $type="select", $name="", $class="", $input_id="", $attrib="") {
-		$group_field	=varKey("group_fieldset_{$type}");
-		$group_title	=varKey("group_legend_{$type}");
-		$group_block	=varKey("group_block_{$type}");
-		$group_wrap		=varKey("group_wrap_{$type}");
-
-		if (!$group_field) $group_field=varKey("group_fieldset");
-		if (!$group_title) $group_title=varKey("group_legend");
-		if (!$group_block) $group_block=varKey("group_block");
-		if (!$group_wrap) $group_wrap=varKey("group_wrap");
+		$group_field	=$this->formKey("group_fieldset_{$type}");
+		$group_title	=$this->formKey("group_legend_{$type}");
+		$group_block	=$this->formKey("group_block_{$type}");
+		$group_wrap		=$this->formKey("group_wrap_{$type}");
+		
+		if (!$group_field) $group_field=$this->formKey("group_fieldset");
+		if (!$group_title) $group_title=$this->formKey("group_legend");
+		if (!$group_block) $group_block=$this->formKey("group_block");
+		if (!$group_wrap) $group_wrap=$this->formKey("group_wrap");
 
 		if (!$group_field) $group_field="group-fieldset-{$type}";
 		if (!$group_title) $group_title="group-legend-{$type}";
@@ -559,10 +568,10 @@ class form extends main
 		#------- select	group
 		if ($type=="select") {
 			$placeholders	=$this->placeholder($attrib, $name, $type);
-			$placeholder	=arrayKey(0, $placeholders);
-			$hide_option	=arrayKey(2, $placeholders);
+			$placeholder	=$this->arrayKey(0, $placeholders);
+			$hide_option	=$this->arrayKey(2, $placeholders);
 	
-			if ($placeholder&&$hide_option!=1) {
+			if ($placeholder && $hide_option!=1) {
 				$item[]='
 					<option value="" class="placeholder">'.$placeholder."</option>";
 			}
@@ -570,15 +579,15 @@ class form extends main
 		#------- loop values options, radio, checkbox
 		if (is_array($array)) {
 			foreach ($array as $mkey=>$array_main) {	
-				$avalue	=$array_main["id"];
-				$alabel	=$array_main["name"];
-				$achild	=arrayKey("children", $array_main);
+				$avalue	=$this->arrayKey("id", $array_main);
+				$alabel	=$this->arrayKey("name", $array_main);
+				$achild	=$this->arrayKey("children", $array_main);
 				# -------------- if multi dimensional
 				if (is_array($achild)) {
 					$option	="";
 					foreach ($achild as $rkey=>$array_row) {
-						$value	=$array_row["id"];
-						$label	=$array_row["name"];
+						$value	=$this->arrayKey("id", $array_row);
+						$label	=$this->arrayKey("name", $array_row);
 						$option	.=$this->inputGroup($value, $label, $default, $type, $name, $class, $input_id, $attrib);
 					}
 														
@@ -607,19 +616,19 @@ class form extends main
 	}
 
 	public function inputGroup($value="", $label="", $default="", $type="select", $name="", $class="", $input_id="", $attrib="") {
-		global $break;
+		
 		# ------ 
 		$state	="";
 		if ((is_array($default)&&in_array($value, $default))||$value==$default) {
 			$state	=($type=="select")?"selected":'checked="checked"';
 		}
 		# ---------- 
-		$group_wrap	=varKey("group_wrap_{$type}");
-		if (!$group_wrap) $group_wrap=varKey("group_wrap");
+		$group_wrap	=$this->formKey("group_wrap_{$type}");
+		if (!$group_wrap) $group_wrap=$this->formKey("group_wrap");
 		if (!$group_wrap) $group_wrap="group-wrap-{$type}";
 		
-		$group_label	=varKey("group_label_{$type}");
-		if (!$group_label) $group_label=varKey("group_label");
+		$group_label	=$this->formKey("group_label_{$type}");
+		if (!$group_label) $group_label=$this->formKey("group_label");
 		if (!$group_label) $group_label="group-label-{$type}";
 		
 		$opt_value	=htmlentities($value, ENT_COMPAT);
@@ -630,6 +639,7 @@ class form extends main
 		$lab_class	=($class)?' class="group-label '.$group_label.' lab-'.$class.'"':"";
 		$attrib		=str_replace('id="'.$input_id.'"', 'id="'.$inputId.'"', $attrib);
 
+		$break	=$this->formKey("break");
 		# ---------- form text
 		if ($type=="radio") {
 			$option	='
@@ -685,7 +695,7 @@ class form extends main
 			parse_str("list={$value}", $var_url);
 			$_GET	=array_merge($_GET, $var_url);
 		}
-		$name	=arrayKey("list", $var_url);
+		$name	=$this->arrayKey("list", $var_url);
 		$result	=["name"=>$name, "type"=>$type, "path"=>$nPath];
 		return $result;
 	}
@@ -697,33 +707,33 @@ class form extends main
 		$key_col	="";
 		$key_name	="";
 
+		$keys	=[];
 		if (strstr($name, "array_")) {
-			$array	=varKey($name);
+			$array	=$this->formKey($name);
 			if ($array) {
 				$type	="array";
-				$row	=arrayKey(0, $array);
+				$row	=$this->arrayKey(0, $array);
 				$keys	=array_keys($row);
-				$key_col	=arrayKey(0, $keys);
-				$key_name	=arrayKey(1, $keys);
+				$key_col	=$this->arrayKey(0, $keys);
+				$key_name	=$this->arrayKey(1, $keys);
 				if (in_array("id", $keys)) $key_col="id";
 				if (in_array("name", $keys)) $key_name="name";
 				
-			//echo '<pre>'.print_r($keys, 1).'</pre>';
 				$count	=count($keys);
 			}
 		}
 		else {
-			$text_query	=lists_query($name, "", 0);
+			$text_query	=$this->load("lists")->as_query($name);
 			if ($text_query) {
 				$type	="grid";
 				$array_sql	=explode(":", $text_query);
-				$sql_query	=arrayKey(0, $array_sql);
-				$key_col	=arrayKey(1, $array_sql, "id");
-				$key_name	=arrayKey(2, $array_sql, "name");
+				$sql_query	=$this->arrayKey(0, $array_sql);
+				$key_col	=$this->arrayKey(1, $array_sql, "id");
+				$key_name	=$this->arrayKey(2, $array_sql, "name");
 				$key_name	=str_replace('[c]', ":", $key_name);
 				
 				if (strstr($sql_query, '->table("')) {
-					$sql_query	='return '.$sql_query.'->get_select();';
+					$sql_query	='return '.$sql_query.'->get();';
 					$sql_query	=eval($sql_query);
 				}
 				
@@ -744,16 +754,16 @@ class form extends main
 	}
 	
 	public function gridList($list="", $value="", $multi=0) {
-		$form_type	=arrayKey("type", $list);
-		$list_name	=arrayKey("name", $list);
-		$list_path	=arrayKey("path", $list);
+		$form_type	=$this->arrayKey("type", $list);
+		$list_name	=$this->arrayKey("name", $list);
+		$list_path	=$this->arrayKey("path", $list);
 
 		$result	=$this->listData($list_name);
-		$list_type	=arrayKey("type", $result);
-		$array_keys	=arrayKey("keys", $result);
-		$count_keys	=arrayKey("count", $result);
-		$key_col	=arrayKey("value", $result);
-		$key_name	=arrayKey("label", $result);
+		$list_type	=$this->arrayKey("type", $result);
+		$array_keys	=$this->arrayKey("keys", $result);
+		$count_keys	=$this->arrayKey("count", $result);
+		$key_col	=$this->arrayKey("value", $result);
+		$key_name	=$this->arrayKey("label", $result);
 		
 		$attrib	="";
 		if ($array_keys) {
@@ -821,7 +831,7 @@ class form extends main
 	public function wrap($type="text", $name="", $values="", $value="", $attribute="", $validate="") {
 		
 		$tags	=$this->arrayFormat($attribute);
-		$type	=arrayKey("type", $tags, $type);
+		$type	=$this->arrayKey("type", $tags, $type);
 		$attrib	='wrap="1" '.$attribute;
 
 		$text	=$this->form($type, $name, $values, $value, $attrib, $validate);
